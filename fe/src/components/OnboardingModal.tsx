@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { UserProfile, BodyAnalysisResult } from '../types';
 import { api } from '../services/api';
-import { Upload, Camera, Sparkles } from 'lucide-react';
+import { Upload, Camera, Sparkles, X, Edit3 } from 'lucide-react';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -16,26 +16,44 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   userId,
   onSaveProfile
 }) => {
-  const [step, setStep] = useState<1 | 2>(1);
+  const [method, setMethod] = useState<'manual' | 'ai'>('manual');
+
+  // Physical stats
   const [heightCm, setHeightCm] = useState(170);
   const [currentWeightKg, setCurrentWeightKg] = useState(65);
   const [targetWeightKg, setTargetWeightKg] = useState(60);
   const [age, setAge] = useState(22);
-  const [gender] = useState<'male' | 'female'>('male');
+  const [gender, setGender] = useState<'male' | 'female'>('male');
   const [activityLevel, setActivityLevel] = useState<'sedentary' | 'light' | 'moderate' | 'active'>('moderate');
   const [goal, setGoal] = useState<'weight_loss' | 'muscle_gain' | 'maintain'>('weight_loss');
+
+  // AI Photo State
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [analyzingPhoto, setAnalyzingPhoto] = useState(false);
   const [aiBodyAnalysis, setAiBodyAnalysis] = useState<BodyAnalysisResult | null>(null);
+  const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    // Reset all transient photo/analysis states without saving
+    setPhotoPreview(null);
+    setAiBodyAnalysis(null);
+    setAnalyzingPhoto(false);
+    onClose();
+  };
+
+  const handleClearPhoto = () => {
+    setPhotoPreview(null);
+    setAiBodyAnalysis(null);
+    setAnalyzingPhoto(false);
+  };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setPhotoPreview(URL.createObjectURL(file));
 
-      // Trigger AI body shape estimation
       setAnalyzingPhoto(true);
       const formData = new FormData();
       formData.append('height_cm', heightCm.toString());
@@ -47,11 +65,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
       const res = await api.analyzeBodyPose(formData);
       setAiBodyAnalysis(res);
+
+      if (res.height_cm) setHeightCm(res.height_cm);
+      if (res.weight_kg) setCurrentWeightKg(res.weight_kg);
+
       setAnalyzingPhoto(false);
     }
   };
 
   const handleFinish = async () => {
+    setSaving(true);
     const updated = await api.updateProfile(userId, {
       height_cm: heightCm,
       current_weight_kg: currentWeightKg,
@@ -60,29 +83,57 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       gender: gender,
       activity_level: activityLevel,
       goal: goal,
+      body_shape: aiBodyAnalysis?.body_shape
     });
     onSaveProfile(updated);
-    onClose();
+    setSaving(false);
+    handleClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl text-white max-h-[90vh] overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl text-white max-h-[90vh] overflow-y-auto relative">
         
-        {/* Progress Header */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
-          <div>
-            <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Khởi tạo Hồ Sơ</span>
-            <h2 className="text-lg font-extrabold text-white">Bước {step} trên 2: {step === 1 ? 'Chỉ số cơ thể' : 'Phân tích vóc dáng AI'}</h2>
-          </div>
-          <div className="flex space-x-1.5">
-            <div className={`w-8 h-2 rounded-full ${step >= 1 ? 'bg-emerald-500' : 'bg-slate-800'}`} />
-            <div className={`w-8 h-2 rounded-full ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-800'}`} />
-          </div>
+        {/* Close Button (Resets info without saving) */}
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-rose-400 p-2 rounded-full hover:bg-slate-800 transition-colors"
+          title="Đóng (Không lưu thay đổi)"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Header */}
+        <div className="mb-4 pr-8">
+          <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Khảo Sát Thể Trạng</span>
+          <h2 className="text-lg font-extrabold text-white">Cấu Hình Chỉ Số & Phom Dáng Cơ Thể</h2>
         </div>
 
-        {step === 1 ? (
-          <div className="space-y-4">
+        {/* Method Selector Tabs: 1. Nhập Tay | 2. Phân Tích Bằng AI */}
+        <div className="flex bg-slate-800/80 p-1 rounded-2xl mb-5">
+          <button
+            onClick={() => setMethod('manual')}
+            className={`flex-1 py-2 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${
+              method === 'manual' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Edit3 className="w-4 h-4" />
+            <span>1. Nhập Tay Thông Số</span>
+          </button>
+          <button
+            onClick={() => setMethod('ai')}
+            className={`flex-1 py-2 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${
+              method === 'ai' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>2. Phân Tích Bằng AI (Ảnh)</span>
+          </button>
+        </div>
+
+        {/* METHOD 1: MANUAL INPUT FORM */}
+        {method === 'manual' && (
+          <div className="space-y-4 animate-fadeIn">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Chiều cao (cm)</label>
@@ -126,6 +177,29 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             </div>
 
             <div>
+              <label className="block text-xs text-slate-400 mb-1">Giới tính</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'male', label: '👨 Nam' },
+                  { id: 'female', label: '👩 Nữ' }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setGender(item.id as any)}
+                    className={`py-2 text-xs font-bold rounded-xl border text-center transition-all ${
+                      gender === item.id 
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
+                        : 'bg-slate-800 border-slate-700 text-slate-400'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <label className="block text-xs text-slate-400 mb-1">Mục tiêu chính</label>
               <div className="grid grid-cols-3 gap-2">
                 {[
@@ -164,33 +238,66 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             </div>
 
             <button
-              onClick={() => setStep(2)}
+              onClick={handleFinish}
+              disabled={saving}
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-4"
             >
-              Tiếp Theo: Phân Tích Hình Thể AI →
+              {saving ? 'Đang lưu...' : 'Hoàn Tất & Lưu Hồ Sơ Nhập Tay →'}
             </button>
           </div>
-        ) : (
-          <div className="space-y-4">
+        )}
+
+        {/* METHOD 2: AI CAMERA SCAN METHOD */}
+        {method === 'ai' && (
+          <div className="space-y-4 animate-fadeIn">
             <p className="text-xs text-slate-400">
-              Tải lên ảnh chụp toàn thân hoặc nửa người để AI (Pose / Body shape estimator) ước tính sơ bộ tỷ lệ mỡ và phom dáng.
+              Chụp hoặc tải lên ảnh body toàn thân/nửa người. Mô hình OpenCV Computer Vision sẽ tự động phân tích khung hình, đo tỷ lệ Vai/Eo (V-Taper Index), cập nhật lại chiều cao & cân nặng tương ứng.
             </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Chiều cao (cm) (Tự cập nhật theo ảnh)</label>
+                <input
+                  type="number"
+                  value={heightCm}
+                  onChange={(e) => setHeightCm(Number(e.target.value))}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-emerald-400 font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Cân nặng (kg) (Tự cập nhật theo ảnh)</label>
+                <input
+                  type="number"
+                  value={currentWeightKg}
+                  onChange={(e) => setCurrentWeightKg(Number(e.target.value))}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-emerald-400 font-bold"
+                />
+              </div>
+            </div>
 
             {/* Photo Upload Zone */}
             <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500/50 rounded-2xl p-4 text-center bg-slate-800/40 relative">
               {photoPreview ? (
                 <div className="relative inline-block">
-                  <img src={photoPreview} alt="Body" className="h-40 rounded-xl object-cover border border-slate-700" />
+                  <img src={photoPreview} alt="Body" className="h-44 rounded-xl object-cover border border-slate-700" />
+                  {/* Remove photo button */}
+                  <button
+                    onClick={handleClearPhoto}
+                    className="absolute -top-2 -right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-full shadow-lg transition-colors"
+                    title="Xóa ảnh này"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                   <label className="absolute bottom-2 right-2 bg-slate-950/80 p-2 rounded-full cursor-pointer text-emerald-400">
                     <Camera className="w-4 h-4" />
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                   </label>
                 </div>
               ) : (
-                <label className="cursor-pointer block py-4">
+                <label className="cursor-pointer block py-5">
                   <Upload className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                  <span className="text-xs font-semibold text-slate-300">Chạm để chọn hoặc chụp ảnh Body</span>
-                  <span className="block text-[10px] text-slate-500 mt-1">(Tùy chọn - Có thể bỏ qua)</span>
+                  <span className="text-xs font-semibold text-slate-300">Chạm để chọn hoặc chụp ảnh Body bằng AI</span>
+                  <span className="block text-[10px] text-slate-500 mt-1">AI sẽ trích xuất bóng dáng & đo V-Taper Index</span>
                   <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                 </label>
               )}
@@ -200,15 +307,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             {analyzingPhoto && (
               <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center text-xs text-emerald-400 animate-pulse">
                 <Sparkles className="w-5 h-5 mx-auto mb-1" />
-                AI đang trích xuất khung hình và ước tính chỉ số TDEE/BMI...
+                AI Computer Vision đang trích xuất đường nét cơ thể & cập nhật chiều cao/cân nặng...
               </div>
             )}
 
             {aiBodyAnalysis && !analyzingPhoto && (
-              <div className="p-4 bg-slate-800/80 border border-slate-700 rounded-2xl space-y-2 text-xs">
+              <div className="p-4 bg-slate-800/80 border border-emerald-500/30 rounded-2xl space-y-2 text-xs">
                 <div className="flex items-center justify-between font-bold text-emerald-400">
-                  <span>Dạng cơ thể: {aiBodyAnalysis.body_shape}</span>
-                  <span>TDEE ước tính: {aiBodyAnalysis.tdee} kcal</span>
+                  <span>Dạng cơ thể AI: {aiBodyAnalysis.body_shape}</span>
+                  <span>TDEE: {aiBodyAnalysis.tdee} kcal</span>
                 </div>
                 <div className="text-slate-300 leading-relaxed">
                   {aiBodyAnalysis.recommendation}
@@ -216,22 +323,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               </div>
             )}
 
-            <div className="flex space-x-3 pt-2">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 rounded-xl"
-              >
-                ← Quay lại
-              </button>
-              <button
-                onClick={handleFinish}
-                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20"
-              >
-                Hoàn Tất & Lưu →
-              </button>
-            </div>
+            <button
+              onClick={handleFinish}
+              disabled={saving}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
+            >
+              {saving ? 'Đang lưu...' : 'Hoàn Tất & Lưu Kết Quả Phân Tích AI →'}
+            </button>
           </div>
         )}
+
       </div>
     </div>
   );

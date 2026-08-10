@@ -63,6 +63,8 @@ export interface BodyAnalysisResult {
   bmi: number;
   tdee: number;
   recommendation: string;
+  height_cm?: number;
+  weight_kg?: number;
 }
 
 export interface NutritionSummary {

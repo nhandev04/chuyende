@@ -10,6 +10,7 @@ interface DashboardProps {
   onOpenWeightModal: () => void;
   onOpenOnboarding: () => void;
   theme?: 'dark' | 'light';
+  refreshKey?: number;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -18,7 +19,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenScanner,
   onOpenWeightModal,
   onOpenOnboarding,
-  theme = 'dark'
+  theme = 'dark',
+  refreshKey = 0
 }) => {
   const [summary, setSummary] = useState<NutritionSummary | null>(null);
   const [todayLogs, setTodayLogs] = useState<FoodLog[]>([]);
@@ -40,7 +42,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   useEffect(() => {
     loadDashboardData();
-  }, [userId]);
+  }, [userId, refreshKey]);
 
   const handleDeleteLog = async (logId: number) => {
     await api.deleteFoodLog(logId);

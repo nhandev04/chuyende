@@ -28,6 +28,7 @@ export function App() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'profile' | 'admin'>('dashboard');
+  const [refreshKey, setRefreshKey] = useState<number>(0);
 
   // Modals
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -88,6 +89,11 @@ export function App() {
     }
   };
 
+  const handleFoodLogged = () => {
+    setActiveTab('dashboard');
+    setRefreshKey(prev => prev + 1);
+  };
+
   const isDark = theme === 'dark';
 
   return (
@@ -118,6 +124,7 @@ export function App() {
             onOpenWeightModal={() => setIsWeightModalOpen(true)}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
             theme={theme}
+            refreshKey={refreshKey}
           />
         )}
 
@@ -167,9 +174,7 @@ export function App() {
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
         userId={user?.user_id || 1}
-        onFoodLogged={() => {
-          setActiveTab('dashboard');
-        }}
+        onFoodLogged={handleFoodLogged}
       />
 
       <WeightLogModal
@@ -181,6 +186,7 @@ export function App() {
           if (profile) {
             setProfile({ ...profile, current_weight_kg: w });
           }
+          setRefreshKey(prev => prev + 1);
         }}
       />
 

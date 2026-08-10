@@ -50,7 +50,6 @@ def update_profile(user_id: int, profile_in: UserProfileUpdate, db: Session = De
         if value is not None:
             setattr(profile, field, value)
 
-    # Recalculate BMI, TDEE, Body Shape based on updated physical parameters
     analysis = mock_analyze_body(
         height_cm=profile.height_cm,
         weight_kg=profile.current_weight_kg,
@@ -76,8 +75,8 @@ def update_profile(user_id: int, profile_in: UserProfileUpdate, db: Session = De
 
 @router.post("/body-analysis", response_model=BodyAnalysisResult)
 def analyze_body_pose(
-    height_cm: float = Form(...),
-    weight_kg: float = Form(...),
+    height_cm: float = Form(170.0),
+    weight_kg: float = Form(65.0),
     age: int = Form(22),
     gender: str = Form("male"),
     goal: str = Form("weight_loss"),
@@ -100,7 +99,9 @@ def analyze_body_pose(
             estimated_body_fat_pct=result["estimated_body_fat_pct"],
             bmi=result["bmi"],
             tdee=result["tdee"],
-            recommendation=result["recommendation"]
+            recommendation=result["recommendation"],
+            height_cm=height_cm,
+            weight_kg=weight_kg
         )
     finally:
         if temp_path and os.path.exists(temp_path):
