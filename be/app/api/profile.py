@@ -7,7 +7,7 @@ from typing import Optional
 from app.db.database import get_db
 from app.db.models import User, UserProfile
 from app.schemas.schemas import UserProfileUpdate, UserProfileOut, BodyAnalysisResult
-from app.services.vit_face_analyzer import predict_height_weight_with_vit
+from app.services.body_pose_analyzer import predict_height_weight_from_body
 from app.services.analysis_engine import compute_body_metrics
 
 logger = logging.getLogger(__name__)
@@ -81,87 +81,77 @@ def analyze_body_pose(
     age: int = Form(22),
     gender: str = Form("male"),
     goal: str = Form("weight_loss"),
-    facial_image: Optional[UploadFile] = File(None)
+    body_image: Optional[UploadFile] = File(None)
 ):
     """
-    ViT (Vision Transformer) Facial Analysis for Height & Weight Prediction:
-    Analyzes facial features using fine-tuned ViT model to predict height and weight.
-    Then computes body metrics (BMI, TDEE, Body Fat %) based on predictions.
-    
-    Returns:
-        BodyAnalysisResult with predicted height, weight, BMI, TDEE, body fat %, and recommendation
+    Full-body body analysis based on YOLOv8 pose estimation + ArUco scale calibration.
+    This flow is meant for full-body photos, not face-only images.
     """
     temp_path = None
     pred_height = None
     pred_weight = None
     confidence = 0.0
-    model_info = "No facial image provided"
+    model_info = "No body image provided"
 
-    logger.info(f"Body analysis request: age={age}, gender={gender}, goal={goal}, has_facial_image={bool(facial_image and facial_image.filename)}")
+    logger.info(f"Body analysis request: age={age}, gender={gender}, goal={goal}, has_body_image={bool(body_image and body_image.filename)}")
 
-    # If facial image is provided, use ViT to predict height/weight
-    if facial_image and facial_image.filename:
-        temp_path = os.path.join(TEMP_BODY_DIR, f"face_{facial_image.filename}")
+    if body_image and body_image.filename:
+        temp_path = os.path.join(TEMP_BODY_DIR, f"body_{body_image.filename}")
         try:
-            # Save uploaded file
             with open(temp_path, "wb") as buffer:
-                shutil.copyfileobj(facial_image.file, buffer)
+                shutil.copyfileobj(body_image.file, buffer)
 
-            logger.info(f"Saved uploaded facial image to {temp_path}")
+            logger.info(f"Saved uploaded body image to {temp_path}")
 
-            # Use ViT model to predict height and weight from facial features
-            vit_result = predict_height_weight_with_vit(temp_path)
-            logger.info(f"ViT result: {vit_result}")
+            pose_result = predict_height_weight_from_body(temp_path)
+            logger.info(f"Pose analysis result: {pose_result}")
 
-            pred_height = vit_result.get("predicted_height_cm")
-            pred_weight = vit_result.get("predicted_weight_kg")
-            confidence = vit_result.get("confidence_score", 0.0)
-            model_info = vit_result.get("model_info", "ViT Model")
+            pred_height = pose_result.get("predicted_height_cm")
+            pred_weight = pose_result.get("predicted_weight_kg")
+            confidence = pose_result.get("confidence_score", 0.0)
+            model_info = pose_result.get("model_info", "YOLO Pose + ArUco")
 
-            logger.info(f"Parsed ViT values: pred_height={pred_height}, pred_weight={pred_weight}, confidence={confidence}, model_info={model_info}")
+            logger.info(f"Parsed body values: pred_height={pred_height}, pred_weight={pred_weight}, confidence={confidence}, model_info={model_info}")
 
-            # Reject default/fallback results when the face cannot be analyzed confidently
             if pred_height is None or pred_weight is None or confidence <= 0.0:
-                logger.warning("ViT face analysis returned invalid or empty prediction; raising error instead of defaulting to 170/70")
+                logger.warning("Pose-based body analysis returned invalid or empty prediction; refusing to default to fake values")
                 raise HTTPException(
                     status_code=400,
-                    detail="❌ Không nhận diện được khuôn mặt. Vui lòng gửi ảnh rõ ràng hơn, phơi sáng tốt hơn hoặc chụp trực diện."
+                    detail="❌ Không nhận diện được cơ thể từ ảnh này. Vui lòng gửi ảnh toàn thân rõ ràng, đủ sáng và không cắt ngang cơ thể."
                 )
 
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Error during ViT facial analysis: {e}")
+            logger.error(f"Error during body pose analysis: {e}")
             raise HTTPException(
                 status_code=400,
-                detail="❌ Không thể phân tích khuôn mặt từ ảnh này. Hãy thử ảnh rõ hơn hoặc chụp trực diện."
+                detail="❌ Không thể phân tích ảnh toàn thân. Hãy thử ảnh rõ hơn, chụp từ đầu tới chân và đảm bảo ánh sáng tốt."
             )
 
     if pred_height is None or pred_weight is None or confidence <= 0.0:
-        logger.warning("No valid ViT prediction available; refusing to compute body metrics from defaults")
+        logger.warning("No valid body prediction available; refusing to compute metrics from defaults")
         raise HTTPException(
             status_code=400,
-            detail="❌ Không nhận diện được khuôn mặt. Vui lòng gửi ảnh rõ ràng hơn, phơi sáng tốt hơn hoặc chụp trực diện."
+            detail="❌ Không nhận diện được cơ thể từ ảnh này. Vui lòng gửi ảnh toàn thân rõ ràng, đủ sáng và không cắt ngang cơ thể."
         )
 
     try:
-        # Compute body metrics using predicted height and weight only when valid ViT output exists
         logger.info(f"Computing body metrics with pred_height={pred_height}, pred_weight={pred_weight}, age={age}, gender={gender}, goal={goal}")
         result = compute_body_metrics(pred_height, pred_weight, age, gender, goal)
 
-        vit_note = f"\n[ViT Model: {model_info}, Confidence: {confidence}]" if confidence > 0 else ""
+        pose_note = f"\n[YOLO Pose + ArUco: {model_info}, Confidence: {confidence}]" if confidence > 0 else ""
 
         return BodyAnalysisResult(
             body_shape=result["body_shape"],
             estimated_body_fat_pct=result["estimated_body_fat_pct"],
             bmi=result["bmi"],
             tdee=result["tdee"],
-            recommendation=result["recommendation"] + vit_note,
+            recommendation=result["recommendation"] + pose_note,
             height_cm=pred_height,
             weight_kg=pred_weight
         )
     finally:
-        # Clean up temporary file
         if temp_path and os.path.exists(temp_path):
             try:
                 os.remove(temp_path)

@@ -57,7 +57,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             formData.append("age", age.toString());
             formData.append("gender", gender);
             formData.append("goal", goal);
-            formData.append("facial_image", file);
+            formData.append("body_image", file);
 
             try {
                 const res = await api.analyzeBodyPose(formData);
@@ -66,7 +66,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 if (res.height_cm) setHeightCm(res.height_cm);
                 if (res.weight_kg) setCurrentWeightKg(res.weight_kg);
             } catch (error: any) {
-                setAiError(error.message || "Không thể phân tích ảnh khuôn mặt.");
+                setAiError(error.message || "Không thể phân tích ảnh toàn thân.");
                 setAiBodyAnalysis(null);
             } finally {
                 setAnalyzingPhoto(false);
@@ -257,8 +257,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 {method === "ai" && (
                     <div className="space-y-4 animate-fadeIn">
                         <p className="text-xs text-slate-400">
-                            Chụp hoặc tải lên ảnh khuôn mặt rõ ràng để hệ thống phân tích chiều cao và cân nặng dựa trên
-                            ViT. Nếu khuôn mặt không nhận diện được, hệ thống sẽ báo lỗi thay vì gán mặc định.
+                            Chụp hoặc tải lên ảnh toàn thân rõ ràng để hệ thống phân tích chiều cao và cân nặng dựa trên
+                            YOLO Pose + ArUco. Nếu ảnh không đủ rõ hoặc không thấy cơ thể đầy đủ, hệ thống sẽ báo lỗi
+                            thay vì gán mặc định.
                         </p>
 
                         {aiError && (
@@ -359,7 +360,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                         <button
                             onClick={handleFinish}
                             disabled={saving}
-                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
+                            className="w-full bg-linear-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
                         >
                             {saving ? "Đang lưu..." : "Hoàn Tất & Lưu Kết Quả Phân Tích AI →"}
                         </button>

@@ -7,6 +7,7 @@ Dự án Đồ Án Tốt Nghiệp: **Xây dựng nền tảng web chăm sóc s�
 ## 🚀 Hướng Dẫn Khởi Chạy Ứng Dụng (Quick Start Guide)
 
 ### 📋 Yêu cầu tiên quyết (Prerequisites)
+
 - **Node.js**: `>= 18.0.0`
 - **Python**: `>= 3.10`
 
@@ -69,10 +70,10 @@ streamlit run app.py
 
 ## 🔑 Tài Khoản Thử Nghiệm Mặc Định (Demo Credentials)
 
-| Vai Trò | Email / Username | Mật Khẩu | Quyền Hạn |
-| :--- | :--- | :--- | :--- |
-| **User Thường** | `demouser@uit.edu.vn` | `123456` | Quét ảnh AI, Theo dõi Calorie, Nhập Cân nặng, Xem Lịch sử |
-| **Quản Trị Viên** | `admin@uit.edu.vn` | `admin123` | Quản lý Ground-Truth DB món ăn, Duyệt báo cáo AI sai |
+| Vai Trò           | Email / Username      | Mật Khẩu   | Quyền Hạn                                                 |
+| :---------------- | :-------------------- | :--------- | :-------------------------------------------------------- |
+| **User Thường**   | `demouser@uit.edu.vn` | `123456`   | Quét ảnh AI, Theo dõi Calorie, Nhập Cân nặng, Xem Lịch sử |
+| **Quản Trị Viên** | `admin@uit.edu.vn`    | `admin123` | Quản lý Ground-Truth DB món ăn, Duyệt báo cáo AI sai      |
 
 ---
 
@@ -98,15 +99,16 @@ chuyende/
 ## 🧪 Kiểm Thử Tự Động (Verification Commands)
 
 - **Kiểm tra Build Frontend**:
-  ```bash
-  cd fe && npm run build
-  ```
+    ```bash
+    cd fe && npm run build
+    ```
 - **Kiểm tra Backend FastAPI**:
-  ```bash
-  cd be && python -c "from app.main import app; print('Backend OK:', app.title)"
-  ```
+    ```bash
+    cd be && python -c "from app.main import app; print('Backend OK:', app.title)"
+    ```
 
 ---
 
 ## 📄 Báo Cáo Chi Tiết
+
 Xem toàn bộ báo cáo kiến trúc, thuật toán AI và thiết kế database tại: [`PROJECT_REPORT.md`](PROJECT_REPORT.md).

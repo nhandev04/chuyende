@@ -173,7 +173,7 @@ export const api = {
             });
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || err.message || "Không thể phân tích ảnh khuôn mặt.";
+            const message = err.response?.data?.detail || err.message || "Không thể phân tích ảnh toàn thân.";
             throw new Error(message);
         }
     },
