@@ -7,6 +7,7 @@ interface HeaderProps {
   profile: UserProfile | null;
   onOpenAuth: () => void;
   onOpenProfile: () => void;
+  onOpenSubscription: () => void;
   onToggleAdmin: () => void;
   isAdminView: boolean;
   onLogout: () => void;
@@ -18,6 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   user,
   onOpenAuth,
   onOpenProfile,
+  onOpenSubscription,
   onToggleAdmin,
   isAdminView,
   onLogout,
@@ -25,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme
 }) => {
   const isDark = theme === 'dark';
+  const planName = user?.role === 'admin' ? 'ADMIN' : (user?.plan || 'STANDARD').toUpperCase();
 
   return (
     <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 py-3 shadow-lg transition-colors duration-300 ${
@@ -63,6 +66,25 @@ export const Header: React.FC<HeaderProps> = ({
 
           {user ? (
             <>
+              {/* Plan Badge / Upgrade Trigger */}
+              <button
+                onClick={onOpenSubscription}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold flex items-center gap-1 border transition-all ${
+                  user.role === 'admin'
+                    ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                    : user.plan === 'pro'
+                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 border-indigo-400 text-white shadow-sm'
+                    : user.plan === 'plus'
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500'
+                    : 'bg-slate-200 dark:bg-slate-800 border-slate-400 text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                <span>{planName}</span>
+                {user.plan !== 'pro' && user.role !== 'admin' && (
+                  <span className="text-[9px] bg-amber-400 text-slate-950 px-1 rounded font-bold">Nâng Cấp</span>
+                )}
+              </button>
+
               {/* Admin Toggle */}
               {user.role === 'admin' && (
                 <button
@@ -118,3 +140,4 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+

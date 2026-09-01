@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import type { User, UserProfile, FoodLog, NutritionSummary, AIRecommendation } from '../types';
-import { Sparkles, Flame, Plus, Trash2, ChevronRight } from 'lucide-react';
+import type { User, UserProfile, FoodLog, NutritionSummary, AIRecommendation, DailyMealPlan } from '../types';
+import { Sparkles, Flame, Plus, Trash2, Crown, Lock } from 'lucide-react';
 
 interface DashboardProps {
   user: User | null;
   profile: UserProfile | null;
+  onOpenAuth: () => void;
   onOpenScanner: () => void;
   onOpenWeightModal: () => void;
   onOpenOnboarding: () => void;
+  onOpenSubscription: () => void;
   theme?: 'dark' | 'light';
   refreshKey?: number;
 }
@@ -16,33 +18,76 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({
   user,
   profile,
+  onOpenAuth,
   onOpenScanner,
   onOpenWeightModal,
   onOpenOnboarding,
+  onOpenSubscription,
   theme = 'dark',
   refreshKey = 0
 }) => {
   const [summary, setSummary] = useState<NutritionSummary | null>(null);
   const [todayLogs, setTodayLogs] = useState<FoodLog[]>([]);
   const [recommendation, setRecommendation] = useState<AIRecommendation | null>(null);
+  const [proMealPlan, setProMealPlan] = useState<DailyMealPlan | null>(null);
 
-  const userId = user?.user_id || 1;
+  const userId = user?.user_id;
   const isDark = theme === 'dark';
+  const isProOrAdmin = user?.role === 'admin' || user?.plan === 'pro';
 
   const loadDashboardData = async () => {
-    const [sumRes, logsRes, recRes] = await Promise.all([
-      api.getNutritionSummary(userId),
-      api.getFoodLogs(userId),
-      api.getAIRecommendations(userId)
-    ]);
-    setSummary(sumRes);
-    setTodayLogs(logsRes);
-    setRecommendation(recRes);
+    if (!userId) return;
+    try {
+      const [sumRes, logsRes, recRes] = await Promise.all([
+        api.getNutritionSummary(userId),
+        api.getFoodLogs(userId),
+        api.getAIRecommendations(userId)
+      ]);
+      setSummary(sumRes);
+      setTodayLogs(logsRes);
+      setRecommendation(recRes);
+
+      if (isProOrAdmin) {
+        try {
+          const mealRes = await api.getProDailyMealRecommendations(userId);
+          setProMealPlan(mealRes);
+        } catch (err) {
+          console.log("Pro meal fetch notice:", err);
+        }
+      }
+    } catch (err) {
+      console.log("Dashboard load notice:", err);
+    }
   };
 
   useEffect(() => {
-    loadDashboardData();
-  }, [userId, refreshKey]);
+    if (userId) {
+      loadDashboardData();
+    }
+  }, [userId, refreshKey, user?.plan]);
+
+  if (!user) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-6">
+        <div className="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-3xl flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/20">
+          <Sparkles className="w-10 h-10 text-slate-950" />
+        </div>
+        <h2 className="text-3xl font-black text-slate-900 dark:text-white">Chào Mừng Tới HealthLens AI</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+          Nền tảng ứng dụng trí tuệ nhân tạo nhận diện món ăn, định lượng Calorie và gợi ý thực đơn sinh học theo vóc dáng cá nhân.
+        </p>
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            onClick={onOpenAuth}
+            className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm rounded-2xl shadow-lg hover:opacity-95 transition"
+          >
+            🔑 Đăng Nhập / Đăng Ký Trải Nghiệm Ngay
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   const handleDeleteLog = async (logId: number) => {
     await api.deleteFoodLog(logId);
@@ -70,25 +115,94 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div>
           <div className="flex items-center space-x-2">
             <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Hệ Thống Theo Dõi Sức Khỏe AI</span>
-            <span className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold">Real-time</span>
+            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase ${
+              user?.role === 'admin' ? 'bg-amber-500/20 text-amber-400' : user?.plan === 'pro' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : user?.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-300'
+            }`}>
+              Gói: {user?.role === 'admin' ? 'ADMIN' : user?.plan || 'STANDARD'}
+            </span>
           </div>
           <h2 className="text-xl font-black mt-1">Xin chào, {user?.full_name || 'Bạn'} 👋</h2>
           <p className={`text-xs mt-0.5 ${textSub}`}>
             Mục tiêu: {profile?.goal === 'weight_loss' ? 'Giảm Cân / Siết Mỡ' : profile?.goal === 'muscle_gain' ? 'Tăng Cơ / Tăng Cân' : 'Duy Trì Vóc Dáng'}
           </p>
         </div>
-        <button
-          onClick={onOpenOnboarding}
-          className={`text-xs font-semibold px-3 py-2 rounded-xl border transition-all flex items-center space-x-1 ${
-            isDark 
-              ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' 
-              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-          }`}
-        >
-          <span>Khảo sát thể trạng</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onOpenOnboarding}
+            className="hidden sm:flex bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 font-semibold transition"
+          >
+            Khảo Sát
+          </button>
+          <button
+            onClick={onOpenSubscription}
+            className="bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow-md transition flex items-center gap-1.5"
+          >
+            <Crown className="w-3.5 h-3.5 fill-slate-950" />
+            <span>Nâng Cấp Gói</span>
+          </button>
+        </div>
       </div>
+
+      {/* Pro Plan Exclusive Daily Meal Recommendations */}
+      {isProOrAdmin && proMealPlan ? (
+        <div className={`border rounded-3xl p-6 shadow-2xl relative overflow-hidden bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 border-indigo-500/40`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+                <Crown className="w-5 h-5 text-indigo-400 fill-indigo-400" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm text-indigo-300">{proMealPlan.title}</h3>
+                <p className="text-[11px] text-slate-400">Thiết kế chuẩn TDEE ({proMealPlan.target_daily_calories} kcal) & Khuyên BMI</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-indigo-400 bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 rounded-full">
+              PRO ACCESS
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            {proMealPlan.meals.map((m, idx) => (
+              <div key={idx} className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-xs text-indigo-300">{m.meal_label}</span>
+                  <span className="text-[11px] font-black text-emerald-400">{m.calories} kcal</span>
+                </div>
+                <h4 className="font-extrabold text-sm text-white">{m.name}</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">{m.portion}</p>
+                <p className="text-[10px] text-indigo-200/80 italic mt-1.5 bg-indigo-950/50 p-1.5 rounded-lg border border-indigo-800/30">
+                  💡 {m.advice}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Paywall Banner for Standard / Plus users */
+        <div className="border border-indigo-500/30 rounded-3xl p-5 shadow-xl bg-gradient-to-r from-indigo-950/50 via-slate-900 to-purple-950/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5 text-indigo-400" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm text-indigo-200 flex items-center gap-1.5">
+                <Crown className="w-4 h-4 text-amber-400 fill-amber-400" />
+                Gợi Ý Bữa Ăn AI Hàng Ngày (Đặc Quyền Gói Pro)
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Nâng cấp bản Pro (50.000đ/tháng) để nhận thực đơn thiết kế riêng cho Sáng, Trưa, Tối, Phụ chuẩn TDEE & Body Shape.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onOpenSubscription}
+            className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg shrink-0 transition"
+          >
+            Mở Khóa Bản Pro (50k)
+          </button>
+        </div>
+      )}
+
 
       {/* Primary Hero Calorie Progress Gauge */}
       <div className={`border rounded-3xl p-6 shadow-2xl relative overflow-hidden transition-colors ${cardBg}`}>

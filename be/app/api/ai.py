@@ -4,10 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.db.database import get_db
-from app.db.models import UserProfile, FoodLog, AIReport
+from app.db.models import User, UserProfile, FoodLog, AIReport
 from app.schemas.schemas import AIAnalysisResult, AIReportCreate
 from app.services.real_ai import analyze_food_with_best_pt
 from app.services.analysis_engine import generate_diet_recommendations
+from app.services.daily_meal_service import generate_pro_daily_meal_plan
 
 router = APIRouter(prefix="/api/v1/ai", tags=["AI Engine"])
 
@@ -17,16 +18,24 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 @router.post("/analyze-food", response_model=AIAnalysisResult)
 def analyze_food(
     text_prompt: Optional[str] = Form(None),
-    food_image: Optional[UploadFile] = File(None)
+    user_id: Optional[int] = Form(None),
+    food_image: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
 ):
     """
     AI Food Analyzer endpoint:
     Processes uploaded food image via YOLO (app/models/best.pt) or natural text prompt.
-    
-    Returns:
-        AIAnalysisResult with food details if detected successfully
-        400 Bad Request if no image/text provided or food not detected
+    Requires user to have 'plus' or 'pro' plan or 'admin' role.
     """
+    # Plan validation
+    if user_id:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user and user.role != "admin" and user.plan not in ["plus", "pro"]:
+            raise HTTPException(
+                status_code=403,
+                detail="🔒 Tính năng AI Quét ảnh món ăn chỉ dành cho tài khoản Plus (25.000đ/tháng) hoặc Pro (50.000đ/tháng). Vui lòng nâng cấp gói để sử dụng."
+            )
+
     # Validate input
     if not food_image and not text_prompt:
         raise HTTPException(
@@ -70,8 +79,24 @@ def analyze_food(
             except Exception:
                 pass
 
+@router.get("/daily-meal-recommendations/{user_id}")
+def get_pro_daily_meal_recommendations(user_id: int, db: Session = Depends(get_db)):
+    """
+    Pro Plan exclusive feature: Generates personalized daily meal plan (Breakfast, Lunch, Dinner, Snack).
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if user and user.role != "admin" and user.plan != "pro":
+        raise HTTPException(
+            status_code=403,
+            detail="🔒 Tính năng 'Gợi ý bữa ăn hàng ngày' chỉ dành riêng cho bản Pro (50.000đ/tháng). Vui lòng nâng cấp gói Pro để trải nghiệm."
+        )
+
+    profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+    return generate_pro_daily_meal_plan(profile, db)
+
 @router.get("/recommendations/{user_id}")
 def get_diet_recommendation(user_id: int, db: Session = Depends(get_db)):
+
     profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
     target_cal = profile.daily_calorie_target if profile else 2000.0
     goal = profile.goal if profile else "weight_loss"

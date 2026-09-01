@@ -8,14 +8,22 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=True) # Optional for Clerk OAuth users
     full_name = Column(String, nullable=True)
     role = Column(String, default="user") # "user" or "admin"
+    auth_provider = Column(String, default="local") # "clerk" or "local"
+    clerk_user_id = Column(String, unique=True, index=True, nullable=True)
+    plan = Column(String, default="standard") # "standard", "plus", "pro"
+    stripe_customer_id = Column(String, nullable=True)
+    stripe_subscription_id = Column(String, nullable=True)
+    subscription_expires_at = Column(DateTime, nullable=True)
+    subscription_status = Column(String, default="active") # "active", "canceled", "none"
     created_at = Column(DateTime, default=datetime.utcnow)
 
     profile = relationship("UserProfile", back_populates="user", uselist=False)
     food_logs = relationship("FoodLog", back_populates="user")
     weight_logs = relationship("WeightLog", back_populates="user")
+    subscriptions = relationship("SubscriptionHistory", back_populates="user")
 
 class UserProfile(Base):
     __tablename__ = "user_profiles"
@@ -87,3 +95,16 @@ class AIReport(Base):
     user_correction = Column(String, nullable=False)
     status = Column(String, default="pending") # pending, resolved
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class SubscriptionHistory(Base):
+    __tablename__ = "subscription_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    plan = Column(String, nullable=False) # "plus" or "pro"
+    amount_vnd = Column(Integer, nullable=False) # 25000 or 50000
+    payment_method = Column(String, default="stripe") # "stripe" or "demo"
+    stripe_session_id = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="subscriptions")

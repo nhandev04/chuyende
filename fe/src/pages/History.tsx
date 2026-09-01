@@ -21,12 +21,17 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
 
   useEffect(() => {
     async function loadData() {
-      const [sumRes, weightRes] = await Promise.all([
-        api.getNutritionSummary(userId),
-        api.getWeightHistory(userId)
-      ]);
-      setSummary(sumRes);
-      setWeightLogs(weightRes);
+      if (!userId) return;
+      try {
+        const [sumRes, weightRes] = await Promise.all([
+          api.getNutritionSummary(userId),
+          api.getWeightHistory(userId)
+        ]);
+        setSummary(sumRes);
+        setWeightLogs(weightRes);
+      } catch (err) {
+        console.log("History load notice:", err);
+      }
     }
     loadData();
   }, [userId]);
@@ -34,6 +39,16 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
   const cardBg = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
   const textMain = isDark ? 'text-white' : 'text-slate-900';
   const textSub = isDark ? 'text-slate-400' : 'text-slate-500';
+
+  if (!userId) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
+        <h3 className="text-xl font-bold">Lịch Sử Theo Dõi Sức Khỏe</h3>
+        <p className="text-sm text-slate-400">Vui lòng đăng nhập để xem lịch sử nạp calo và biến động cân nặng cá nhân.</p>
+      </div>
+    );
+  }
+
 
   return (
     <div className={`space-y-6 pb-24 max-w-4xl mx-auto px-4 pt-4 ${textMain}`}>

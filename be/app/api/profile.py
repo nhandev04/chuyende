@@ -81,17 +81,29 @@ def analyze_body_pose(
     age: int = Form(22),
     gender: str = Form("male"),
     goal: str = Form("weight_loss"),
-    body_image: Optional[UploadFile] = File(None)
+    user_id: Optional[int] = Form(None),
+    body_image: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
 ):
     """
     Full-body body analysis based on YOLOv8 pose estimation.
     Applies dynamic BMI computation and 10-Level BMI scale classification.
+    Requires user to have 'pro' plan or 'admin' role.
     """
+    if user_id:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user and user.role != "admin" and user.plan != "pro":
+            raise HTTPException(
+                status_code=403,
+                detail="🔒 Tính năng Phân tích vóc dáng AI (YOLO Pose) chỉ dành riêng cho tài khoản Pro (50.000đ/tháng). Vui lòng nâng cấp gói Pro để sử dụng."
+            )
+
     temp_path = None
     pred_height = None
     pred_weight = None
     confidence = 0.0
     model_info = "No body image provided"
+
 
     logger.info(f"Body analysis request: age={age}, gender={gender}, goal={goal}, has_body_image={bool(body_image and body_image.filename)}")
 

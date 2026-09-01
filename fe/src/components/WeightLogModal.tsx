@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { X, Scale, Check } from 'lucide-react';
 
@@ -20,7 +20,24 @@ export const WeightLogModal: React.FC<WeightLogModalProps> = ({
   const [weight, setWeight] = useState(currentWeight || 65);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      if (userId) {
+        api.getProfile(userId).then(p => {
+          if (p && p.current_weight_kg) {
+            setWeight(p.current_weight_kg);
+          }
+        }).catch(() => {
+          if (currentWeight) setWeight(currentWeight);
+        });
+      } else if (currentWeight) {
+        setWeight(currentWeight);
+      }
+    }
+  }, [isOpen, userId, currentWeight]);
+
   if (!isOpen) return null;
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -28,19 +28,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const isDark = theme === 'dark';
+  if (!user) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
+        <h3 className="text-xl font-bold">Hồ Sơ Sức Khỏe Cá Nhân</h3>
+        <p className="text-sm text-slate-400">Vui lòng đăng nhập để xem và tùy chỉnh thông tin sinh học, chỉ số TDEE và mục tiêu giảm cân.</p>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (profile) {
-      setHeightCm(profile.height_cm);
-      setCurrentWeight(profile.current_weight_kg);
-      setTargetWeight(profile.target_weight_kg);
-      setAge(profile.age);
-      setGoal(profile.goal);
-      setCalorieTarget(profile.daily_calorie_target);
-      setDietPref(profile.dietary_preferences || '');
-    }
-  }, [profile]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

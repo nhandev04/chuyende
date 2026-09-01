@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { UserProfile, BodyAnalysisResult } from "../types";
 import { api } from "../services/api";
 import { Upload, Camera, Sparkles, X, Edit3 } from "lucide-react";
@@ -7,10 +7,19 @@ interface OnboardingModalProps {
     isOpen: boolean;
     onClose: () => void;
     userId: number;
+    currentProfile?: UserProfile | null;
     onSaveProfile: (profile: UserProfile) => void;
+    onOpenSubscription?: () => void;
 }
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose, userId, onSaveProfile }) => {
+export const OnboardingModal: React.FC<OnboardingModalProps> = ({
+    isOpen,
+    onClose,
+    userId,
+    currentProfile,
+    onSaveProfile,
+    onOpenSubscription
+}) => {
     const [method, setMethod] = useState<"manual" | "ai">("manual");
 
     // Physical stats
@@ -22,12 +31,41 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
     const [activityLevel, setActivityLevel] = useState<"sedentary" | "light" | "moderate" | "active">("moderate");
     const [goal, setGoal] = useState<"weight_loss" | "muscle_gain" | "maintain">("weight_loss");
 
+    // Fetch fresh profile state from API whenever modal opens
+    useEffect(() => {
+        if (isOpen && userId) {
+            api.getProfile(userId).then(p => {
+                if (p) {
+                    setHeightCm(p.height_cm || 170);
+                    setCurrentWeightKg(p.current_weight_kg || 65);
+                    setTargetWeightKg(p.target_weight_kg || 60);
+                    setAge(p.age || 22);
+                    setGender((p.gender as any) || "male");
+                    setActivityLevel((p.activity_level as any) || "moderate");
+                    setGoal((p.goal as any) || "weight_loss");
+                }
+            }).catch(() => {
+                if (currentProfile) {
+                    setHeightCm(currentProfile.height_cm || 170);
+                    setCurrentWeightKg(currentProfile.current_weight_kg || 65);
+                    setTargetWeightKg(currentProfile.target_weight_kg || 60);
+                    setAge(currentProfile.age || 22);
+                    setGender((currentProfile.gender as any) || "male");
+                    setActivityLevel((currentProfile.activity_level as any) || "moderate");
+                    setGoal((currentProfile.goal as any) || "weight_loss");
+                }
+            });
+        }
+    }, [isOpen, userId]);
+
+
     // AI Photo State
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [analyzingPhoto, setAnalyzingPhoto] = useState(false);
     const [aiBodyAnalysis, setAiBodyAnalysis] = useState<BodyAnalysisResult | null>(null);
     const [aiError, setAiError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+
 
     if (!isOpen) return null;
 
@@ -260,9 +298,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 {/* METHOD 2: AI CAMERA SCAN METHOD */}
                 {method === "ai" && (
                     <div className="space-y-4 animate-fadeIn">
+                        <div className="p-3 bg-indigo-950/60 border border-indigo-500/30 rounded-2xl flex items-center justify-between text-xs">
+                            <span className="text-indigo-200">✨ Tính năng AI YOLO Pose 17 Keypoints (Đặc quyền gói Pro)</span>
+                            {onOpenSubscription && (
+                                <button
+                                    onClick={onOpenSubscription}
+                                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-[11px] shrink-0"
+                                >
+                                    Nâng Cấp Pro
+                                </button>
+                            )}
+                        </div>
                         <p className="text-xs text-slate-400">
                             Chụp hoặc tải lên ảnh toàn thân rõ ràng để hệ thống phân tích chiều cao, cân nặng và Thang đo BMI 10 cấp độ dựa trên YOLO Pose keypoints.
                         </p>
+
 
                         {aiError && (
                             <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">

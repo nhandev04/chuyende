@@ -2,15 +2,18 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
-from app.api import auth, profile, food_logs, weight_logs, ai, admin
+from app.db.seed import seed_initial_db
+from app.api import auth, profile, food_logs, weight_logs, ai, admin, subscription
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
-# Create tables automatically
+# Create tables automatically & seed initial database
 Base.metadata.create_all(bind=engine)
+seed_initial_db()
+
 
 app = FastAPI(
     title="AI Personalized Health & Calorie Tracking API",
@@ -34,6 +37,8 @@ app.include_router(food_logs.router)
 app.include_router(weight_logs.router)
 app.include_router(ai.router)
 app.include_router(admin.router)
+app.include_router(subscription.router)
+
 
 @app.get("/")
 def root():

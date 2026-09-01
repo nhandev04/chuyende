@@ -24,5 +24,6 @@ dist-ssr
 *.sw?
 *.doc
 *.docx
+.env
 
 __pycache__

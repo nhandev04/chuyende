@@ -10,6 +10,8 @@ import type {
     AIRecommendation,
     FoodDatabaseItem,
     AIReportItem,
+    SubscriptionPlan,
+    DailyMealPlan,
 } from "../types";
 
 const API_BASE_URL = "http://localhost:8000/api/v1";
@@ -30,61 +32,6 @@ client.interceptors.request.use((config) => {
     }
     return config;
 });
-
-// Helper for Mock Fallback when BE server is not yet running
-const mockUser: User = {
-    user_id: 1,
-    email: "demouser@uit.edu.vn",
-    full_name: "Nguyễn Trọng Nhân",
-    role: "user",
-    access_token: "mock_jwt_token_12345",
-};
-
-const mockProfile: UserProfile = {
-    id: 1,
-    user_id: 1,
-    height_cm: 172,
-    current_weight_kg: 68,
-    target_weight_kg: 63,
-    age: 22,
-    gender: "male",
-    activity_level: "moderate",
-    goal: "weight_loss",
-    daily_calorie_target: 1950,
-    bmi: 23.0,
-    tdee: 2350,
-    body_shape: "Average",
-    dietary_preferences: "Hạn chế dầu mỡ, Ngân sách 100k/ngày",
-};
-
-const mockLogs: FoodLog[] = [
-    {
-        id: 1,
-        user_id: 1,
-        meal_type: "breakfast",
-        food_name: "Phở Bò Tái Sách",
-        weight_g: 450,
-        calories: 480,
-        protein_g: 26.5,
-        carbs_g: 58,
-        fat_g: 14.2,
-        confidence_score: 0.95,
-        logged_at: new Date().toISOString(),
-    },
-    {
-        id: 2,
-        user_id: 1,
-        meal_type: "lunch",
-        food_name: "Salad Ức Gà Sốt Chanh Dây",
-        weight_g: 350,
-        calories: 320,
-        protein_g: 35,
-        carbs_g: 18,
-        fat_g: 10.5,
-        confidence_score: 0.96,
-        logged_at: new Date().toISOString(),
-    },
-];
 
 export const api = {
     // Session Persistence Helpers
@@ -113,12 +60,8 @@ export const api = {
             this.setStoredUser(user, user.access_token);
             return user;
         } catch (err: any) {
-            if (err.response?.data?.detail) {
-                throw new Error(err.response.data.detail);
-            }
-            const user: User = { ...mockUser, email, full_name: email.split("@")[0] };
-            this.setStoredUser(user, user.access_token);
-            return user;
+            const message = err.response?.data?.detail || "Đăng nhập thất bại. Kiểm tra email & mật khẩu.";
+            throw new Error(message);
         }
     },
 
@@ -129,12 +72,24 @@ export const api = {
             this.setStoredUser(user, user.access_token);
             return user;
         } catch (err: any) {
-            if (err.response?.data?.detail) {
-                throw new Error(err.response.data.detail);
-            }
-            const user: User = { ...mockUser, email, full_name: fullName || "Người dùng mới" };
+            const message = err.response?.data?.detail || "Đăng ký thất bại. Email đã được sử dụng.";
+            throw new Error(message);
+        }
+    },
+
+    async clerkSync(clerkUserId: string, email: string, fullName?: string): Promise<User> {
+        try {
+            const res = await client.post("/auth/clerk-sync", {
+                clerk_user_id: clerkUserId,
+                email,
+                full_name: fullName
+            });
+            const user: User = res.data;
             this.setStoredUser(user, user.access_token);
             return user;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Không thể đồng bộ tài khoản Clerk OAuth với hệ thống.";
+            throw new Error(message);
         }
     },
 
@@ -147,13 +102,59 @@ export const api = {
         }
     },
 
+    // Subscription & Stripe APIs
+    async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+        try {
+            const res = await client.get("/subscription/plans");
+            return res.data.plans;
+        } catch (err: any) {
+            throw new Error("Không thể tải danh sách gói dịch vụ từ server.");
+        }
+    },
+
+    async createCheckoutSession(plan: 'plus' | 'pro', userId: number): Promise<{ checkout_url: string }> {
+        try {
+            const res = await client.post("/subscription/create-checkout-session", { plan, user_id: userId });
+            return res.data;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Không thể khởi tạo Stripe checkout session.";
+            throw new Error(message);
+        }
+    },
+
+    async upgradeSubscription(plan: 'plus' | 'pro', userId: number): Promise<User> {
+        try {
+            const res = await client.post("/subscription/upgrade", { plan, user_id: userId, payment_method: "stripe" });
+            const currentUser = this.getStoredUser();
+            const updated = currentUser 
+                ? { ...currentUser, plan: res.data.plan as 'plus' | 'pro' }
+                : { user_id: userId, email: "", role: "user" as const, plan: res.data.plan as 'plus' | 'pro' };
+            
+            this.setStoredUser(updated, currentUser?.access_token);
+            return updated;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Không thể nâng cấp gói dịch vụ.";
+            throw new Error(message);
+        }
+    },
+
+    async getProDailyMealRecommendations(userId: number): Promise<DailyMealPlan> {
+        try {
+            const res = await client.get(`/ai/daily-meal-recommendations/${userId}`);
+            return res.data;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "🔒 Tính năng 'Gợi ý bữa ăn hàng ngày' chỉ dành riêng cho bản Pro (50.000đ/tháng).";
+            throw new Error(message);
+        }
+    },
+
     // Profile APIs
     async getProfile(userId: number): Promise<UserProfile> {
         try {
             const res = await client.get(`/profile/${userId}`);
             return res.data;
-        } catch {
-            return mockProfile;
+        } catch (err: any) {
+            throw new Error("Không thể tải thông tin profile người dùng.");
         }
     },
 
@@ -161,8 +162,9 @@ export const api = {
         try {
             const res = await client.put(`/profile/${userId}`, profileData);
             return res.data;
-        } catch {
-            return { ...mockProfile, ...profileData };
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Cập nhật hồ sơ thất bại.";
+            throw new Error(message);
         }
     },
 
@@ -178,13 +180,13 @@ export const api = {
         }
     },
 
-    // Food Logs & Summary
+    // Food Logs & Summary APIs
     async getFoodLogs(userId: number, dateStr?: string): Promise<FoodLog[]> {
         try {
             const res = await client.get(`/food-logs/${userId}`, { params: { date_str: dateStr } });
             return res.data;
         } catch {
-            return mockLogs;
+            return [];
         }
     },
 
@@ -195,24 +197,18 @@ export const api = {
         try {
             const res = await client.post(`/food-logs/${userId}`, log);
             return res.data;
-        } catch {
-            const newLog: FoodLog = {
-                ...log,
-                id: Date.now(),
-                user_id: userId,
-                confidence_score: 0.95,
-                logged_at: new Date().toISOString(),
-            };
-            mockLogs.unshift(newLog);
-            return newLog;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Không thể thêm nhật ký món ăn.";
+            throw new Error(message);
         }
     },
 
     async deleteFoodLog(logId: number): Promise<void> {
         try {
             await client.delete(`/food-logs/${logId}`);
-        } catch {
-            // Mock delete
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Xóa món ăn thất bại.";
+            throw new Error(message);
         }
     },
 
@@ -220,49 +216,18 @@ export const api = {
         try {
             const res = await client.get(`/food-logs/${userId}/summary`);
             return res.data;
-        } catch {
-            return {
-                daily: {
-                    consumed_calories: 800,
-                    target_calories: 1950,
-                    remaining_calories: 1150,
-                    protein_g: 61.5,
-                    protein_target_g: 146,
-                    carbs_g: 76,
-                    carbs_target_g: 219,
-                    fat_g: 24.7,
-                    fat_target_g: 54,
-                },
-                weekly_chart: [
-                    { day: "T2", date: "04/08", calories: 1850, target: 1950 },
-                    { day: "T3", date: "05/08", calories: 2050, target: 1950 },
-                    { day: "T4", date: "06/08", calories: 1780, target: 1950 },
-                    { day: "T5", date: "07/08", calories: 1920, target: 1950 },
-                    { day: "T6", date: "08/08", calories: 2100, target: 1950 },
-                    { day: "T7", date: "09/08", calories: 1650, target: 1950 },
-                    { day: "CN", date: "10/08", calories: 800, target: 1950 },
-                ],
-                monthly_chart: [
-                    { week: "Tuần 1", avg_calories: 1920, avg_weight: 69.5 },
-                    { week: "Tuần 2", avg_calories: 1880, avg_weight: 69.0 },
-                    { week: "Tuần 3", avg_calories: 1850, avg_weight: 68.4 },
-                    { week: "Tuần 4", avg_calories: 1810, avg_weight: 68.0 },
-                ],
-            };
+        } catch (err: any) {
+            throw new Error("Không thể tải thống kê dinh dưỡng.");
         }
     },
 
-    // Weight logs
+    // Weight logs APIs
     async getWeightHistory(userId: number): Promise<WeightLog[]> {
         try {
             const res = await client.get(`/weight-logs/${userId}`);
             return res.data;
         } catch {
-            return [
-                { id: 1, user_id: userId, weight_kg: 69.5, recorded_at: "2026-07-15T08:00:00Z" },
-                { id: 2, user_id: userId, weight_kg: 68.8, recorded_at: "2026-07-25T08:00:00Z" },
-                { id: 3, user_id: userId, weight_kg: 68.0, recorded_at: "2026-08-05T08:00:00Z" },
-            ];
+            return [];
         }
     },
 
@@ -270,12 +235,13 @@ export const api = {
         try {
             const res = await client.post(`/weight-logs/${userId}`, { weight_kg: weightKg });
             return res.data;
-        } catch {
-            return { id: Date.now(), user_id: userId, weight_kg: weightKg, recorded_at: new Date().toISOString() };
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Ghi nhận cân nặng thất bại.";
+            throw new Error(message);
         }
     },
 
-    // AI Service
+    // AI Service APIs
     async analyzeFood(formData: FormData): Promise<AIAnalysisResult> {
         try {
             const res = await client.post("/ai/analyze-food", formData, {
@@ -283,13 +249,8 @@ export const api = {
             });
             return res.data;
         } catch (err: any) {
-            // Re-throw error with server message or default message
-            const errorMessage =
-                err.response?.data?.detail ||
-                err.message ||
-                "Không nhận diện được đồ ăn. Vui lòng cung cấp ảnh rõ ràng hơn.";
-
-            throw new Error(errorMessage);
+            const message = err.response?.data?.detail || err.message || "Quét ảnh món ăn thất bại.";
+            throw new Error(message);
         }
     },
 
@@ -297,20 +258,8 @@ export const api = {
         try {
             const res = await client.get(`/ai/recommendations/${userId}`);
             return res.data;
-        } catch {
-            return {
-                status: "on_track",
-                diff_calories: -1150,
-                advice: "Bạn còn dư 1,150 kcal cho bữa tối. Hãy nạp bữa ăn giàu đạm cùng rau xanh để đảm bảo thâm hụt calo lành mạnh!",
-                suggested_meals: [
-                    {
-                        meal: "Bữa Tối",
-                        suggestion: "Cơm gạo lứt + 200g Ức gà áp chảo + Bông cải xanh luộc",
-                        calories: 520,
-                    },
-                    { meal: "Bữa Phụ", suggestion: "1 Quả táo đỏ + 1 hũ sữa chua không đường", calories: 150 },
-                ],
-            };
+        } catch (err: any) {
+            throw new Error("Không thể lấy gợi ý AI.");
         }
     },
 
@@ -321,12 +270,13 @@ export const api = {
                 original_prediction: original,
                 user_correction: correction,
             });
-        } catch {
-            // Mock submit success
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Gửi báo cáo lỗi AI thất bại.";
+            throw new Error(message);
         }
     },
 
-    // Admin API
+    // Admin APIs
     async getAdminStats(): Promise<{
         total_users: number;
         alert_users_count: number;
@@ -336,8 +286,8 @@ export const api = {
         try {
             const res = await client.get("/admin/stats");
             return res.data;
-        } catch {
-            return { total_users: 128, alert_users_count: 5, pending_ai_reports: 3, total_food_items: 45 };
+        } catch (err: any) {
+            throw new Error("Không thể tải thống kê Admin.");
         }
     },
 
@@ -346,35 +296,7 @@ export const api = {
             const res = await client.get("/admin/foods");
             return res.data;
         } catch {
-            return [
-                {
-                    id: 1,
-                    food_name: "Phở Bò Tái Sách",
-                    category: "Món Nước",
-                    calories_per_100g: 106,
-                    protein_per_100g: 5.8,
-                    carbs_per_100g: 12.8,
-                    fat_per_100g: 3.1,
-                },
-                {
-                    id: 2,
-                    food_name: "Cơm Tấm Sườn Bì Chả",
-                    category: "Cơm",
-                    calories_per_100g: 144,
-                    protein_per_100g: 7.6,
-                    carbs_per_100g: 15.0,
-                    fat_per_100g: 5.6,
-                },
-                {
-                    id: 3,
-                    food_name: "Salad Ức Gà Sốt Chanh Dây",
-                    category: "Healthy",
-                    calories_per_100g: 91.4,
-                    protein_per_100g: 10.0,
-                    carbs_per_100g: 5.1,
-                    fat_per_100g: 3.0,
-                },
-            ];
+            return [];
         }
     },
 
@@ -383,24 +305,7 @@ export const api = {
             const res = await client.get("/admin/reports");
             return res.data;
         } catch {
-            return [
-                {
-                    id: 1,
-                    user_id: 1,
-                    original_prediction: "Thịt bò xào",
-                    user_correction: "Thịt lợn rang cháy cạnh",
-                    status: "pending",
-                    created_at: new Date().toISOString(),
-                },
-                {
-                    id: 2,
-                    user_id: 2,
-                    original_prediction: "Trà chanh",
-                    user_correction: "Trà sữa trân châu",
-                    status: "pending",
-                    created_at: new Date().toISOString(),
-                },
-            ];
+            return [];
         }
     },
 };

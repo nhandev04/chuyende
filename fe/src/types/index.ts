@@ -3,8 +3,49 @@ export interface User {
   email: string;
   full_name?: string;
   role: 'user' | 'admin';
+  plan?: 'standard' | 'plus' | 'pro';
+  auth_provider?: 'clerk' | 'local';
+  clerk_user_id?: string;
   access_token?: string;
 }
+
+export interface SubscriptionPlan {
+  id: 'standard' | 'plus' | 'pro';
+  name: string;
+  price_vnd: number;
+  price_display: string;
+  features: string[];
+  badge: string;
+  is_current_default: boolean;
+}
+
+export interface DailyMealPlan {
+  title: string;
+  target_daily_calories: number;
+  planned_total_calories: number;
+  macros_summary: {
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+  };
+  bmi_context: {
+    bmi: number;
+    body_shape: string;
+    goal: string;
+  };
+  meals: Array<{
+    meal_type: string;
+    meal_label: string;
+    name: string;
+    portion: string;
+    calories: number;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+    advice: string;
+  }>;
+}
+
 
 export interface UserProfile {
   id?: number;

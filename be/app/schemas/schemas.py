@@ -12,6 +12,11 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+class ClerkSyncRequest(BaseModel):
+    clerk_user_id: str
+    email: str
+    full_name: Optional[str] = None
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -19,6 +24,26 @@ class TokenResponse(BaseModel):
     email: str
     full_name: Optional[str] = None
     role: str
+    plan: str = "standard"
+    auth_provider: str = "local"
+
+# Subscription Schemas
+class CheckoutSessionRequest(BaseModel):
+    plan: str # "plus" or "pro"
+    user_id: int
+
+class SubscriptionUpgradeRequest(BaseModel):
+    plan: str # "plus" or "pro"
+    user_id: int
+    payment_method: Optional[str] = "stripe"
+
+class SubscriptionStatusOut(BaseModel):
+    user_id: int
+    plan: str # "standard", "plus", "pro"
+    subscription_status: str
+    subscription_expires_at: Optional[datetime] = None
+    is_active: bool
+
 
 # Profile Schemas
 class UserProfileUpdate(BaseModel):

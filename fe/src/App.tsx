@@ -13,18 +13,16 @@ import { History } from './pages/History';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 
+import { SubscriptionModal } from './components/SubscriptionModal';
+
 export function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('health_app_theme');
     return (saved === 'light' || saved === 'dark') ? saved : 'dark';
   });
 
-  const [user, setUser] = useState<User | null>(() => api.getStoredUser() || {
-    user_id: 1,
-    email: 'demouser@uit.edu.vn',
-    full_name: 'Nguyễn Trọng Nhân',
-    role: 'user'
-  });
+  const [user, setUser] = useState<User | null>(() => api.getStoredUser());
+
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'profile' | 'admin'>('dashboard');
@@ -35,6 +33,7 @@ export function App() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+  const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -52,7 +51,8 @@ export function App() {
       }
     }
     loadUserProfile();
-  }, [user]);
+  }, [user, refreshKey]);
+
 
   const handleAuthSuccess = async (authUser: User, isNewRegistration: boolean = false) => {
     setUser(authUser);
@@ -94,6 +94,11 @@ export function App() {
     setRefreshKey(prev => prev + 1);
   };
 
+  const handlePlanUpgraded = (updatedUser: User) => {
+    setUser(updatedUser);
+    setRefreshKey(prev => prev + 1);
+  };
+
   const isDark = theme === 'dark';
 
   return (
@@ -107,6 +112,7 @@ export function App() {
         profile={profile}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenProfile={() => setActiveTab('profile')}
+        onOpenSubscription={() => setIsSubscriptionOpen(true)}
         onToggleAdmin={handleToggleAdmin}
         isAdminView={activeTab === 'admin'}
         onLogout={handleLogout}
@@ -120,16 +126,18 @@ export function App() {
           <Dashboard
             user={user}
             profile={profile}
+            onOpenAuth={() => setIsAuthOpen(true)}
             onOpenScanner={() => setIsScannerOpen(true)}
             onOpenWeightModal={() => setIsWeightModalOpen(true)}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
+            onOpenSubscription={() => setIsSubscriptionOpen(true)}
             theme={theme}
             refreshKey={refreshKey}
           />
         )}
 
         {activeTab === 'history' && (
-          <History userId={user?.user_id || 1} theme={theme} />
+          <History userId={user?.user_id || 0} theme={theme} />
         )}
 
         {activeTab === 'profile' && (
@@ -163,11 +171,26 @@ export function App() {
         onSuccess={(u, isNew) => handleAuthSuccess(u, isNew)}
       />
 
+      <SubscriptionModal
+        isOpen={isSubscriptionOpen}
+        onClose={() => setIsSubscriptionOpen(false)}
+        currentUser={user}
+        onPlanUpgraded={handlePlanUpgraded}
+      />
+
       <OnboardingModal
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
         userId={user?.user_id || 1}
-        onSaveProfile={(p) => setProfile(p)}
+        currentProfile={profile}
+        onSaveProfile={(p) => {
+          setProfile(p);
+          setRefreshKey(prev => prev + 1);
+        }}
+        onOpenSubscription={() => {
+          setIsOnboardingOpen(false);
+          setIsSubscriptionOpen(true);
+        }}
       />
 
       <FoodScannerModal
@@ -195,3 +218,4 @@ export function App() {
 }
 
 export default App;
+
