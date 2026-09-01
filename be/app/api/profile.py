@@ -84,8 +84,8 @@ def analyze_body_pose(
     body_image: Optional[UploadFile] = File(None)
 ):
     """
-    Full-body body analysis based on YOLOv8 pose estimation + ArUco scale calibration.
-    This flow is meant for full-body photos, not face-only images.
+    Full-body body analysis based on YOLOv8 pose estimation.
+    Applies dynamic BMI computation and 10-Level BMI scale classification.
     """
     temp_path = None
     pred_height = None
@@ -109,12 +109,9 @@ def analyze_body_pose(
             pred_height = pose_result.get("predicted_height_cm")
             pred_weight = pose_result.get("predicted_weight_kg")
             confidence = pose_result.get("confidence_score", 0.0)
-            model_info = pose_result.get("model_info", "YOLO Pose + ArUco")
-
-            logger.info(f"Parsed body values: pred_height={pred_height}, pred_weight={pred_weight}, confidence={confidence}, model_info={model_info}")
+            model_info = pose_result.get("model_info", "YOLO Pose")
 
             if pred_height is None or pred_weight is None or confidence <= 0.0:
-                logger.warning("Pose-based body analysis returned invalid or empty prediction; refusing to default to fake values")
                 raise HTTPException(
                     status_code=400,
                     detail="❌ Không nhận diện được cơ thể từ ảnh này. Vui lòng gửi ảnh toàn thân rõ ràng, đủ sáng và không cắt ngang cơ thể."
@@ -130,17 +127,14 @@ def analyze_body_pose(
             )
 
     if pred_height is None or pred_weight is None or confidence <= 0.0:
-        logger.warning("No valid body prediction available; refusing to compute metrics from defaults")
         raise HTTPException(
             status_code=400,
             detail="❌ Không nhận diện được cơ thể từ ảnh này. Vui lòng gửi ảnh toàn thân rõ ràng, đủ sáng và không cắt ngang cơ thể."
         )
 
     try:
-        logger.info(f"Computing body metrics with pred_height={pred_height}, pred_weight={pred_weight}, age={age}, gender={gender}, goal={goal}")
         result = compute_body_metrics(pred_height, pred_weight, age, gender, goal)
-
-        pose_note = f"\n[YOLO Pose + ArUco: {model_info}, Confidence: {confidence}]" if confidence > 0 else ""
+        pose_note = f"\n[YOLO Pose Model: {model_info}, Confidence: {confidence}]" if confidence > 0 else ""
 
         return BodyAnalysisResult(
             body_shape=result["body_shape"],
@@ -149,7 +143,9 @@ def analyze_body_pose(
             tdee=result["tdee"],
             recommendation=result["recommendation"] + pose_note,
             height_cm=pred_height,
-            weight_kg=pred_weight
+            weight_kg=pred_weight,
+            bmi_level=result["bmi_level"],
+            bmi_level_label=result["bmi_level_label"]
         )
     finally:
         if temp_path and os.path.exists(temp_path):

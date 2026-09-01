@@ -36,23 +36,24 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         setPhotoPreview(null);
         setAiBodyAnalysis(null);
         setAnalyzingPhoto(false);
+        setAiError(null);
         onClose();
     };
 
     const handleClearPhoto = () => {
         setPhotoPreview(null);
         setAiBodyAnalysis(null);
-        setAiError(null);
         setAnalyzingPhoto(false);
+        setAiError(null);
     };
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setPhotoPreview(URL.createObjectURL(file));
-            setAiError(null);
 
             setAnalyzingPhoto(true);
+            setAiError(null);
             const formData = new FormData();
             formData.append("age", age.toString());
             formData.append("gender", gender);
@@ -65,9 +66,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
                 if (res.height_cm) setHeightCm(res.height_cm);
                 if (res.weight_kg) setCurrentWeightKg(res.weight_kg);
-            } catch (error: any) {
-                setAiError(error.message || "Không thể phân tích ảnh toàn thân.");
+            } catch (err: any) {
                 setAiBodyAnalysis(null);
+                setAiError(
+                    err?.response?.data?.detail ||
+                        "❌ Không nhận diện được cơ thể từ ảnh này. Vui lòng chọn ảnh toàn thân rõ ràng, chụp thẳng từ đầu tới chân.",
+                );
             } finally {
                 setAnalyzingPhoto(false);
             }
@@ -257,9 +261,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 {method === "ai" && (
                     <div className="space-y-4 animate-fadeIn">
                         <p className="text-xs text-slate-400">
-                            Chụp hoặc tải lên ảnh toàn thân rõ ràng để hệ thống phân tích chiều cao và cân nặng dựa trên
-                            YOLO Pose + ArUco. Nếu ảnh không đủ rõ hoặc không thấy cơ thể đầy đủ, hệ thống sẽ báo lỗi
-                            thay vì gán mặc định.
+                            Chụp hoặc tải lên ảnh toàn thân rõ ràng để hệ thống phân tích chiều cao, cân nặng và Thang đo BMI 10 cấp độ dựa trên YOLO Pose keypoints.
                         </p>
 
                         {aiError && (
@@ -324,10 +326,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                                 <label className="cursor-pointer block py-5">
                                     <Upload className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                                     <span className="text-xs font-semibold text-slate-300">
-                                        Chạm để chọn hoặc chụp ảnh Body bằng AI
+                                        Chạm để chọn hoặc chụp ảnh Body bằng AI Pose
                                     </span>
                                     <span className="block text-[10px] text-slate-500 mt-1">
-                                        AI sẽ trích xuất bóng dáng & đo V-Taper Index
+                                        YOLO Pose trích xuất 17 điểm khung xương & tính BMI động
                                     </span>
                                     <input
                                         type="file"
@@ -343,24 +345,54 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                         {analyzingPhoto && (
                             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center text-xs text-emerald-400 animate-pulse">
                                 <Sparkles className="w-5 h-5 mx-auto mb-1" />
-                                AI Computer Vision đang trích xuất đường nét cơ thể & cập nhật chiều cao/cân nặng...
+                                AI YOLO Pose đang trích xuất 17 điểm khung xương & phân tích Thang đo BMI 10 cấp độ...
                             </div>
                         )}
 
                         {aiBodyAnalysis && !analyzingPhoto && (
-                            <div className="p-4 bg-slate-800/80 border border-emerald-500/30 rounded-2xl space-y-2 text-xs">
+                            <div className="p-4 bg-slate-800/80 border border-emerald-500/30 rounded-2xl space-y-3 text-xs">
                                 <div className="flex items-center justify-between font-bold text-emerald-400">
                                     <span>Dạng cơ thể AI: {aiBodyAnalysis.body_shape}</span>
                                     <span>TDEE: {aiBodyAnalysis.tdee} kcal</span>
                                 </div>
-                                <div className="text-slate-300 leading-relaxed">{aiBodyAnalysis.recommendation}</div>
+
+                                {aiBodyAnalysis.bmi_level && (
+                                    <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-700">
+                                        <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
+                                            <span className="text-amber-400">📊 Thang đo BMI: Cấp {aiBodyAnalysis.bmi_level}/10</span>
+                                            <span className="text-emerald-300">{aiBodyAnalysis.bmi_level_label}</span>
+                                        </div>
+                                        <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex">
+                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lvl) => (
+                                                <div
+                                                    key={lvl}
+                                                    className={`flex-1 h-full border-r border-slate-900 transition-all ${
+                                                        lvl <= (aiBodyAnalysis.bmi_level || 5)
+                                                            ? (aiBodyAnalysis.bmi_level || 5) <= 3
+                                                                ? "bg-amber-400"
+                                                                : (aiBodyAnalysis.bmi_level || 5) <= 5
+                                                                  ? "bg-emerald-400"
+                                                                  : (aiBodyAnalysis.bmi_level || 5) <= 7
+                                                                    ? "bg-orange-400"
+                                                                    : "bg-rose-500"
+                                                            : "bg-slate-700/50"
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="text-slate-300 leading-relaxed whitespace-pre-line">
+                                    {aiBodyAnalysis.recommendation}
+                                </div>
                             </div>
                         )}
 
                         <button
                             onClick={handleFinish}
                             disabled={saving}
-                            className="w-full bg-linear-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
+                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
                         >
                             {saving ? "Đang lưu..." : "Hoàn Tất & Lưu Kết Quả Phân Tích AI →"}
                         </button>

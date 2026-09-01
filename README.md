@@ -87,8 +87,10 @@ chuyende/
 │   └── src/App.tsx                      # Main Controller & Dark/Light Theme Manager
 ├── be/                                  # FastAPI + SQLAlchemy ORM + SQLite
 │   ├── app/models/best.pt               # Weights Mô Hình AI YOLOv8 (29.2 MB)
-│   ├── app/services/real_ai.py          # YOLO Inference & OpenCV Body Contour AI Engine
+│   ├── app/services/body_pose_analyzer.py # YOLO Pose (17 Keypoints) & Dynamic BMI Engine
+│   ├── app/services/analysis_engine.py  # 10-Level BMI Scale & Recommendation Engine
 │   └── health_app.db                    # Database SQLite
+├── BMI_10_LEVEL_SCALE.md                # Tài liệu Thang đo BMI 10 Cấp độ
 └── Food_calories_analysis/              # Phân Hệ Nghiên Cứu AI & PySpark Big Data Batch
     ├── app.py                           # Streamlit Dashboard Demo
     └── pipeline.py                      # PySpark UDF Batch Pipeline Engine
@@ -109,6 +111,7 @@ chuyende/
 
 ---
 
-## 📄 Báo Cáo Chi Tiết
+## 📄 Báo Cáo & Tài Liệu Chi Tiết
 
-Xem toàn bộ báo cáo kiến trúc, thuật toán AI và thiết kế database tại: [`PROJECT_REPORT.md`](PROJECT_REPORT.md).
+- **Báo cáo Đồ án tổng thể**: [`PROJECT_REPORT.md`](PROJECT_REPORT.md)
+- **Tài liệu Thang đo BMI 10 Cấp độ & AI Advisory**: [`BMI_10_LEVEL_SCALE.md`](BMI_10_LEVEL_SCALE.md)

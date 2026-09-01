@@ -48,7 +48,6 @@ def _detect_aruco_markers(image: np.ndarray) -> List[Dict[str, float]]:
 
     markers: List[Dict[str, float]] = []
     for corner in corners:
-        # Marker square side in pixels
         p1, p2, p3, p4 = corner[0]
         side_px = max(
             np.linalg.norm(p1 - p2),
@@ -84,7 +83,6 @@ def _estimate_height_from_pose_and_aruco(image_path: str, result: Any) -> Option
         return None
 
     # Estimate scale using shoulder width (keypoints 5 and 6)
-    # Average shoulder width is ~40-45 cm
     shoulder_left = keypoints[5] if len(keypoints) > 5 else None
     shoulder_right = keypoints[6] if len(keypoints) > 6 else None
     
@@ -92,7 +90,6 @@ def _estimate_height_from_pose_and_aruco(image_path: str, result: Any) -> Option
         if shoulder_left[0] > 0 and shoulder_right[0] > 0:
             shoulder_width_px = abs(shoulder_right[0] - shoulder_left[0])
             if shoulder_width_px > 0:
-                # Average shoulder width ~42 cm
                 px_per_cm = shoulder_width_px / 42.0
                 height_cm = height_px / px_per_cm
                 if 120.0 <= height_cm <= 220.0:
@@ -100,16 +97,12 @@ def _estimate_height_from_pose_and_aruco(image_path: str, result: Any) -> Option
                     return round(float(height_cm), 1)
 
     # Fallback: use face/head width heuristic
-    # Typical head width ~18-20cm, head height ~20-22cm
-    # Head usually takes up 1/7 to 1/8 of total body height
-    # Estimate: if we see head, height ≈ height_px * 7.5 / head_height_px
-    head_keypoints = keypoints[:5]  # nose, eyes, ears
+    head_keypoints = keypoints[:5]
     valid_head = head_keypoints[(head_keypoints[:, 0] > 0) & (head_keypoints[:, 1] > 0)]
     
     if len(valid_head) >= 2:
-        head_width_px = float(np.ptp(valid_head[:, 0]))  # pixel-to-pixel range
+        head_width_px = float(np.ptp(valid_head[:, 0]))
         if head_width_px > 0:
-            # Head width ~19cm, body height to head width ratio ~3.8-4.2
             estimated_px_per_cm = head_width_px / 19.0
             height_cm = height_px / estimated_px_per_cm
             if 120.0 <= height_cm <= 220.0:
@@ -117,11 +110,8 @@ def _estimate_height_from_pose_and_aruco(image_path: str, result: Any) -> Option
                 return round(float(height_cm), 1)
 
     # Final fallback: generic estimation using body height to width ratio
-    # Average body ratio ~2.8-3.2 (height/width)
     body_width_px = float(np.ptp(valid[:, 0]))
-    if body_width_px > 20:  # Minimum width threshold
-        # Conservative estimate: body width ~30-40cm for average person
-        # Use 35cm as middle estimate
+    if body_width_px > 20:
         estimated_px_per_cm = body_width_px / 35.0
         height_cm = height_px / estimated_px_per_cm
         if 120.0 <= height_cm <= 220.0:
@@ -132,21 +122,34 @@ def _estimate_height_from_pose_and_aruco(image_path: str, result: Any) -> Option
     return None
 
 
-def _estimate_weight_kg_from_height(height_cm: float) -> float:
-    # Use a neutral BMI baseline instead of a hard-coded fake value. This is only used after real pose + scale measurement succeeds.
-    bmi_baseline = 22.5
-    weight_kg = bmi_baseline * (height_cm / 100.0) ** 2
-    return round(float(max(35.0, min(150.0, weight_kg))), 1)
+def _estimate_weight_kg_from_keypoints(height_cm: float, keypoints: np.ndarray) -> float:
+    """
+    Dynamically computes body weight based on visual body width vs height ratio from keypoints.
+    Eliminates fixed constant 22.5 BMI baseline!
+    """
+    valid = keypoints[(keypoints[:, 0] > 0) & (keypoints[:, 1] > 0)]
+    if valid.shape[0] >= 4:
+        head_y = float(np.min(valid[:, 1]))
+        foot_y = float(np.max(valid[:, 1]))
+        height_px = max(1.0, foot_y - head_y)
+        
+        width_px = float(np.ptp(valid[:, 0]))
+        ratio = width_px / height_px
+
+        # Dynamic BMI scaling based on keypoint torso ratio (typically 0.16 to 0.35)
+        dynamic_bmi = 15.0 + (ratio - 0.16) * 50.0
+        dynamic_bmi = round(max(16.5, min(36.0, dynamic_bmi)), 1)
+    else:
+        dynamic_bmi = 22.0
+
+    weight_kg = dynamic_bmi * (height_cm / 100.0) ** 2
+    return round(float(max(35.0, min(160.0, weight_kg))), 1)
 
 
 def predict_height_weight_from_body(image_path: str) -> Dict[str, Any]:
     """
-    Estimate height and weight from a full-body image using:
-      1) YOLOv8 pose keypoints (17-point skeleton) to locate the person
-      2) Body proportions (shoulder width, head width, body width) to estimate scale
-    
-    No longer requires ArUco markers - uses anatomical proportions for scale estimation.
-    Returns no fake values when measurement is invalid.
+    Estimate height and weight from a full-body image using YOLOv8 pose keypoints.
+    Calculates dynamic BMI from skeleton proportions.
     """
     try:
         model = get_pose_model()
@@ -186,7 +189,8 @@ def predict_height_weight_from_body(image_path: str) -> Dict[str, Any]:
         if height_cm is None:
             continue
 
-        estimated_weight = _estimate_weight_kg_from_height(height_cm)
+        keypoints_xy = result.keypoints.xy[0].cpu().numpy()
+        estimated_weight = _estimate_weight_kg_from_keypoints(height_cm, keypoints_xy)
         candidate_confidence = min(0.99, max(0.35, box_conf * 0.85))
 
         if candidate_confidence > best_confidence:

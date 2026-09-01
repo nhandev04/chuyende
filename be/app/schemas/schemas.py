@@ -112,6 +112,8 @@ class BodyAnalysisResult(BaseModel):
     recommendation: str
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
+    bmi_level: Optional[int] = None
+    bmi_level_label: Optional[str] = None
 
 class AIReportCreate(BaseModel):
     food_log_id: Optional[int] = None

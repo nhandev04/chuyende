@@ -65,6 +65,8 @@ export interface BodyAnalysisResult {
   recommendation: string;
   height_cm?: number;
   weight_kg?: number;
+  bmi_level?: number;
+  bmi_level_label?: string;
 }
 
 export interface NutritionSummary {
