@@ -7,7 +7,7 @@ from app.db.models import User, UserProfile
 from app.schemas.schemas import UserRegister, UserLogin, TokenResponse
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.config import SECRET_KEY, ALGORITHM
-from app.services.mock_ai import mock_analyze_body
+from app.services.analysis_engine import compute_body_metrics
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
@@ -31,7 +31,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
     db.refresh(new_user)
 
     # Initialize default body profile
-    initial_body = mock_analyze_body(170.0, 65.0, 22, "male", "weight_loss")
+    initial_body = compute_body_metrics(170.0, 65.0, 22, "male", "weight_loss")
     profile = UserProfile(
         user_id=new_user.id,
         height_cm=170.0,

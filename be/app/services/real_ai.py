@@ -6,6 +6,11 @@ import numpy as np
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
+    logger.addHandler(handler)
 
 # Cache model instance globally
 _YOLO_MODEL = None
@@ -25,24 +30,41 @@ def get_yolo_model():
             logger.warning(f"YOLO model file not found at {MODEL_PATH}")
     return _YOLO_MODEL
 
-def analyze_food_with_best_pt(image_path: Optional[str] = None, text_prompt: Optional[str] = None) -> Dict[str, Any]:
+def analyze_food_with_best_pt(image_path: Optional[str] = None, text_prompt: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Uses the real YOLO model (best.pt) from app/models/best.pt to detect food items.
-    Falls back gracefully if no image is uploaded or if detection confidence is low.
+    
+    Returns:
+        Dict with food analysis if detected successfully
+        None if no image provided, model not loaded, or detection failed
     """
-    from app.services.mock_ai import mock_analyze_food
+    from app.services.analysis_engine import analyze_food_fallback
 
+    logger.info(f"Food detection request: image_path={image_path}, text_prompt={text_prompt}")
+
+    # Case 1: No image provided, only text prompt
     if not image_path or not os.path.exists(image_path):
-        return mock_analyze_food(text_prompt=text_prompt)
+        if text_prompt:
+            logger.info(f"No image provided; falling back to text lookup: {text_prompt}")
+            # Try to lookup in database by text
+            return analyze_food_fallback(text_prompt=text_prompt)
+        logger.warning("No image and no text prompt provided for YOLO analysis")
+        # No image and no text prompt → return None
+        return None
 
+    # Case 2: Image provided but model not available
     model = get_yolo_model()
     if model is None:
-        return mock_analyze_food(text_prompt=text_prompt, filename=os.path.basename(image_path))
+        logger.warning("YOLO model not available for food detection")
+        return None
 
+    # Case 3: Try YOLO inference
     try:
+        logger.info(f"Running YOLO inference on image: {image_path}")
         results = model.predict(source=image_path, conf=0.25, verbose=False)[0]
-        
+
         if results.boxes is not None and len(results.boxes) > 0:
+            # Food detected successfully
             best_box = max(results.boxes, key=lambda b: float(b.conf[0].item()))
             cls_id = int(best_box.cls[0].item())
             raw_food_name = model.names[cls_id]
@@ -55,17 +77,24 @@ def analyze_food_with_best_pt(image_path: Optional[str] = None, text_prompt: Opt
                 if name not in all_detected:
                     all_detected.append(name)
 
-            base_info = mock_analyze_food(text_prompt=raw_food_name)
+            logger.info(f"YOLO detected classes: {all_detected} | best={raw_food_name} | confidence={confidence}")
+
+            # Look up nutrition info from database
+            base_info = analyze_food_fallback(text_prompt=raw_food_name)
             base_info["confidence_score"] = round(confidence, 2)
             if all_detected:
                 base_info["detected_items"] = all_detected
 
+            logger.info(f"YOLO final nutrition payload: {base_info}")
             return base_info
+        else:
+            # YOLO found no objects
+            logger.info("YOLO detection: No food items detected in image")
+            return None
 
     except Exception as e:
-        logger.error(f"Error during YOLO inference: {e}")
-
-    return mock_analyze_food(text_prompt=text_prompt, filename=os.path.basename(image_path))
+        logger.exception(f"Error during YOLO inference for image {image_path}: {e}")
+        return None
 
 
 def analyze_body_photo_cv(
@@ -81,7 +110,7 @@ def analyze_body_photo_cv(
     Directly analyzes the image visual contours, aspect ratio, and torso volume index
     to estimate Height, Weight, BMI, Body Fat %, and Somatotype 100% from the photo!
     """
-    from app.services.mock_ai import real_analyze_body
+    from app.services.analysis_engine import compute_body_metrics
 
     is_male = gender.lower() in ["male", "nam", "m"]
     
@@ -157,7 +186,7 @@ def analyze_body_photo_cv(
             logger.error(f"OpenCV Visual Estimation error: {e}")
 
     # Compute Biometrics from Visual Height & Weight
-    base_analysis = real_analyze_body(est_height_cm, est_weight_kg, age, gender, goal)
+    base_analysis = compute_body_metrics(est_height_cm, est_weight_kg, age, gender, goal)
 
     # Classify dynamic Body Shape & Somatotype from Image Features
     shape_category = base_analysis["body_shape"]

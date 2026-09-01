@@ -7,7 +7,7 @@ from app.db.database import get_db
 from app.db.models import UserProfile, FoodLog, AIReport
 from app.schemas.schemas import AIAnalysisResult, AIReportCreate
 from app.services.real_ai import analyze_food_with_best_pt
-from app.services.mock_ai import mock_generate_recommendations
+from app.services.analysis_engine import generate_diet_recommendations
 
 router = APIRouter(prefix="/api/v1/ai", tags=["AI Engine"])
 
@@ -22,15 +22,35 @@ def analyze_food(
     """
     AI Food Analyzer endpoint:
     Processes uploaded food image via YOLO (app/models/best.pt) or natural text prompt.
+    
+    Returns:
+        AIAnalysisResult with food details if detected successfully
+        400 Bad Request if no image/text provided or food not detected
     """
+    # Validate input
+    if not food_image and not text_prompt:
+        raise HTTPException(
+            status_code=400,
+            detail="Vui lòng cung cấp ảnh đồ ăn hoặc tên món ăn"
+        )
+    
     temp_path = None
-    if food_image and food_image.filename:
-        temp_path = os.path.join(TEMP_DIR, f"scan_{food_image.filename}")
-        with open(temp_path, "wb") as buffer:
-            shutil.copyfileobj(food_image.file, buffer)
-
     try:
+        if food_image and food_image.filename:
+            temp_path = os.path.join(TEMP_DIR, f"scan_{food_image.filename}")
+            with open(temp_path, "wb") as buffer:
+                shutil.copyfileobj(food_image.file, buffer)
+
+        # Analyze food using YOLO
         res = analyze_food_with_best_pt(image_path=temp_path, text_prompt=text_prompt)
+        
+        # If detection failed, return 400 error
+        if res is None:
+            raise HTTPException(
+                status_code=400,
+                detail="❌ Không nhận diện được đồ ăn. Vui lòng cung cấp ảnh rõ ràng hơn hoặc nhập tên món ăn."
+            )
+        
         return AIAnalysisResult(
             food_name=res["food_name"],
             estimated_weight_g=res["estimated_weight_g"],
@@ -64,7 +84,7 @@ def get_diet_recommendation(user_id: int, db: Session = Depends(get_db)):
     ).all()
     consumed_cal = sum(l.calories for l in today_logs)
 
-    return mock_generate_recommendations(consumed_cal, target_cal, goal)
+    return generate_diet_recommendations(consumed_cal, target_cal, goal)
 
 @router.post("/report/{user_id}")
 def create_ai_report(user_id: int, report_in: AIReportCreate, db: Session = Depends(get_db)):
