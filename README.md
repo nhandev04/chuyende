@@ -113,5 +113,6 @@ chuyende/
 
 ## 📄 Báo Cáo & Tài Liệu Chi Tiết
 
-- **Báo cáo Đồ án tổng thể**: [`PROJECT_REPORT.md`](PROJECT_REPORT.md)
+- **Kịch bản Live Demo & Thẻ Test Stripe**: [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md)
 - **Tài liệu Thang đo BMI 10 Cấp độ & AI Advisory**: [`BMI_10_LEVEL_SCALE.md`](BMI_10_LEVEL_SCALE.md)
+- **Tài liệu Phân tích vóc dáng YOLO Pose**: [`YOLO_POSE_ANALYSIS.md`](YOLO_POSE_ANALYSIS.md)

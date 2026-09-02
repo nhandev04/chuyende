@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Dark / Light Theme Toggle Button */}
           <button
             onClick={onToggleTheme}
-            title={isDark ? "Chuyển sang Giao diện Sáng (Light Mode)" : "Chuyển sang Giao diện Tối (Dark Mode)"}
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             className={`p-2 rounded-xl border transition-all ${
               isDark 
                 ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' 
@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <span>{planName}</span>
                 {user.plan !== 'pro' && user.role !== 'admin' && (
-                  <span className="text-[9px] bg-amber-400 text-slate-950 px-1 rounded font-bold">Nâng Cấp</span>
+                  <span className="text-[9px] bg-amber-400 text-slate-950 px-1 rounded font-bold">Upgrade</span>
                 )}
               </button>
 
@@ -114,12 +114,12 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold">
                   {user.full_name ? user.full_name[0].toUpperCase() : 'U'}
                 </div>
-                <span className="max-w-[100px] truncate">{user.full_name || 'Hồ Sơ'}</span>
+                <span className="max-w-[100px] truncate">{user.full_name || 'Profile'}</span>
               </button>
 
               <button
                 onClick={onLogout}
-                title="Đăng xuất"
+                title="Logout"
                 className={`p-2 rounded-full transition-colors ${
                   isDark ? 'text-slate-400 hover:text-rose-400 hover:bg-slate-800' : 'text-slate-500 hover:text-rose-600 hover:bg-slate-100'
                 }`}
@@ -132,9 +132,10 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenAuth}
               className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-1.5 rounded-xl font-bold text-xs shadow-md shadow-emerald-500/20 transition-all"
             >
-              Đăng Nhập
+              Sign In
             </button>
           )}
+
         </div>
       </div>
     </header>

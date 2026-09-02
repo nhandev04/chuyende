@@ -15,7 +15,7 @@ def seed_initial_db():
             admin_user = User(
                 email="admin@uit.edu.vn",
                 hashed_password=hash_password("admin123"),
-                full_name="Quản Trị Viên (Admin)",
+                full_name="System Administrator",
                 role="admin",
                 auth_provider="local",
                 plan="pro"
@@ -48,7 +48,7 @@ def seed_initial_db():
             demo_user = User(
                 email="demouser@uit.edu.vn",
                 hashed_password=hash_password("123456"),
-                full_name="Nguyễn Trọng Nhân",
+                full_name="Nguyen Trong Nhan",
                 role="user",
                 auth_provider="local",
                 plan="standard"
@@ -77,13 +77,13 @@ def seed_initial_db():
 
         # 3. Seed Ground-Truth Food Database
         initial_foods = [
-            {"food_name": "Phở Bò Tái Sách", "category": "Món Nước", "calories_per_100g": 106.0, "protein_per_100g": 5.8, "carbs_per_100g": 12.8, "fat_per_100g": 3.1},
-            {"food_name": "Cơm Tấm Sườn Bì Chả", "category": "Cơm", "calories_per_100g": 144.0, "protein_per_100g": 7.6, "carbs_per_100g": 15.0, "fat_per_100g": 5.6},
-            {"food_name": "Salad Ức Gà Sốt Chanh Dây", "category": "Healthy", "calories_per_100g": 91.4, "protein_per_100g": 10.0, "carbs_per_100g": 5.1, "fat_per_100g": 3.0},
-            {"food_name": "Bánh Mì Thịt Nạc", "category": "Bánh Mì", "calories_per_100g": 250.0, "protein_per_100g": 9.5, "carbs_per_100g": 38.0, "fat_per_100g": 6.8},
-            {"food_name": "Bún Thịt Nướng", "category": "Món Khô", "calories_per_100g": 148.0, "protein_per_100g": 8.0, "carbs_per_100g": 17.5, "fat_per_100g": 4.0},
-            {"food_name": "Gỏi Cuốn Tôm Thịt", "category": "Khai Vị", "calories_per_100g": 120.0, "protein_per_100g": 7.0, "carbs_per_100g": 18.0, "fat_per_100g": 2.2},
-            {"food_name": "Sữa Chua Không Đường", "category": "Tráng Miệng", "calories_per_100g": 63.0, "protein_per_100g": 5.3, "carbs_per_100g": 7.0, "fat_per_100g": 1.5}
+            {"food_name": "Beef Noodle Soup (Pho)", "category": "Noodle", "calories_per_100g": 106.0, "protein_per_100g": 5.8, "carbs_per_100g": 12.8, "fat_per_100g": 3.1},
+            {"food_name": "Broken Rice with Grilled Pork", "category": "Rice", "calories_per_100g": 144.0, "protein_per_100g": 7.6, "carbs_per_100g": 15.0, "fat_per_100g": 5.6},
+            {"food_name": "Grilled Chicken Breast Salad", "category": "Healthy", "calories_per_100g": 91.4, "protein_per_100g": 10.0, "carbs_per_100g": 5.1, "fat_per_100g": 3.0},
+            {"food_name": "Vietnamese Pork Baguette (Banh Mi)", "category": "Bakery", "calories_per_100g": 250.0, "protein_per_100g": 9.5, "carbs_per_100g": 38.0, "fat_per_100g": 6.8},
+            {"food_name": "Grilled Pork Rice Vermicelli", "category": "Noodle", "calories_per_100g": 148.0, "protein_per_100g": 8.0, "carbs_per_100g": 17.5, "fat_per_100g": 4.0},
+            {"food_name": "Fresh Spring Rolls with Shrimp & Pork", "category": "Appetizer", "calories_per_100g": 120.0, "protein_per_100g": 7.0, "carbs_per_100g": 18.0, "fat_per_100g": 2.2},
+            {"food_name": "Greek Plain Unsweetened Yogurt", "category": "Dessert", "calories_per_100g": 63.0, "protein_per_100g": 5.3, "carbs_per_100g": 7.0, "fat_per_100g": 1.5}
         ]
 
         for item in initial_foods:

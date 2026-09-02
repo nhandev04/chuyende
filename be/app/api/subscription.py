@@ -27,44 +27,44 @@ def get_subscription_plans():
         "plans": [
             {
                 "id": "standard",
-                "name": "Standard (Gói Cơ Bản)",
+                "name": "Standard (Free Tier)",
                 "price_vnd": 0,
-                "price_display": "0 VNĐ / tháng",
+                "price_display": "$0 / month",
                 "features": [
-                    "Nhập nhật ký bữa ăn thủ công",
-                    "Theo dõi chỉ số cân nặng & BMI cơ bản",
-                    "Quản lý hồ sơ cá nhân"
+                    "Manual food logging",
+                    "Basic weight & BMI tracking",
+                    "Personal profile management"
                 ],
-                "badge": "Miễn phí",
+                "badge": "Free",
                 "is_current_default": True
             },
             {
                 "id": "plus",
-                "name": "Plus (Gói Phân Tích Thực Phẩm)",
+                "name": "Plus (Food Scanner Tier)",
                 "price_vnd": 25000,
-                "price_display": "25.000 VNĐ / tháng",
+                "price_display": "~$1.00 / month (25,000 VND)",
                 "features": [
-                    "Tất cả tính năng bản Standard",
-                    "AI Quét ảnh món ăn tự động (YOLOv8)",
-                    "Phân tích hàm lượng Calo, Protein, Carbs, Fat từ ảnh",
-                    "Cơ sở dữ liệu thực phẩm chuẩn Ground-Truth"
+                    "All Standard tier features",
+                    "⚡ AI Food Image Scanning (YOLOv8)",
+                    "Automated Calorie, Protein, Carbs, Fat analysis",
+                    "Ground-Truth food database access"
                 ],
-                "badge": "Phổ biến nhất",
+                "badge": "Most Popular",
                 "is_current_default": False
             },
             {
                 "id": "pro",
-                "name": "Pro (Gói Chuyên Gia AI)",
+                "name": "Pro (AI Expert Tier)",
                 "price_vnd": 50000,
-                "price_display": "50.000 VNĐ / tháng",
+                "price_display": "~$2.00 / month (50,000 VND)",
                 "features": [
-                    "Tất cả tính năng bản Plus",
-                    "AI Phân tích vóc dáng toàn thân (YOLO Pose 17 Keypoints)",
-                    "Thang đo BMI 10 Cấp độ & Khuyên năng lượng sinh học",
-                    "Gợi ý bữa ăn cá nhân hóa AI hàng ngày (Daily Meal Plan)",
-                    "Ưu tiên hỗ trợ & Xuất báo cáo dinh dưỡng chi tiết"
+                    "All Plus tier features",
+                    "👑 Full-body AI Pose Analysis (YOLO Pose)",
+                    "10-Level BMI Scale & Biometric advice",
+                    "🥗 Daily AI Recommended Meal Plan",
+                    "Priority support & Detailed nutrition reports"
                 ],
-                "badge": "Cao cấp nhất",
+                "badge": "Premium Exclusive",
                 "is_current_default": False
             }
         ]
@@ -80,17 +80,17 @@ def create_checkout_session(payload: CheckoutSessionRequest, db: Session = Depen
 
     plan = payload.plan.lower()
     if plan not in PLAN_PRICES:
-        raise HTTPException(status_code=400, detail="Gói dịch vụ không hợp lệ (Chỉ chọn 'plus' hoặc 'pro')")
+        raise HTTPException(status_code=400, detail="Invalid subscription tier (Select 'plus' or 'pro')")
 
     user = db.query(User).filter(User.id == payload.user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+        raise HTTPException(status_code=404, detail="User not found")
 
     stripe_secret_key = os.getenv("STRIPE_SECRET_KEY")
     if not stripe_secret_key:
         raise HTTPException(
             status_code=500,
-            detail="⚠️ Chưa cấu hình STRIPE_SECRET_KEY trong file be/.env. Vui lòng thêm STRIPE_SECRET_KEY=sk_test_... để tạo link Stripe Checkout thật."
+            detail="⚠️ STRIPE_SECRET_KEY is not configured in be/.env. Please set STRIPE_SECRET_KEY=sk_test_... to generate live Stripe Checkout links."
         )
 
     stripe.api_key = stripe_secret_key
@@ -104,7 +104,7 @@ def create_checkout_session(payload: CheckoutSessionRequest, db: Session = Depen
                     'currency': 'usd',
                     'product_data': {
                         'name': f"{plan_info['name']} - HealthLens AI",
-                        'description': f"Nâng cấp gói {plan.upper()} sử dụng dịch vụ AI",
+                        'description': f"Upgrade to {plan.upper()} tier AI services",
                     },
                     'unit_amount': int(plan_info['stripe_price_usd'] * 100),
                 },
@@ -125,7 +125,7 @@ def create_checkout_session(payload: CheckoutSessionRequest, db: Session = Depen
         }
     except Exception as e:
         logger.error(f"Stripe Checkout error: {e}")
-        raise HTTPException(status_code=500, detail=f"Lỗi khởi tạo Stripe Checkout: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Stripe Checkout initialization error: {str(e)}")
 
 @router.post("/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
@@ -192,11 +192,11 @@ def upgrade_subscription(payload: SubscriptionUpgradeRequest, db: Session = Depe
     """
     plan = payload.plan.lower()
     if plan not in ["plus", "pro"]:
-        raise HTTPException(status_code=400, detail="Gói không hợp lệ. Vui lòng chọn 'plus' hoặc 'pro'.")
+        raise HTTPException(status_code=400, detail="Invalid tier. Please select 'plus' or 'pro'.")
 
     user = db.query(User).filter(User.id == payload.user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản người dùng.")
+        raise HTTPException(status_code=404, detail="User account not found.")
 
     amount_vnd = PLAN_PRICES[plan]["amount_vnd"]
     expires_at = datetime.utcnow() + timedelta(days=30)
@@ -220,7 +220,7 @@ def upgrade_subscription(payload: SubscriptionUpgradeRequest, db: Session = Depe
     db.refresh(history)
 
     return {
-        "message": f"🎉 Chúc mừng bạn đã nâng cấp thành công lên gói {plan.upper()}!",
+        "message": f"🎉 Congratulations! You have successfully upgraded to {plan.upper()} tier!",
         "plan": user.plan,
         "subscription_status": user.subscription_status,
         "expires_at": user.subscription_expires_at,
@@ -231,7 +231,8 @@ def upgrade_subscription(payload: SubscriptionUpgradeRequest, db: Session = Depe
 def get_subscription_status(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+        raise HTTPException(status_code=404, detail="User not found")
+
 
     is_active = True
     if user.subscription_expires_at and user.subscription_expires_at < datetime.utcnow():

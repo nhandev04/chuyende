@@ -120,8 +120,8 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                         <Sparkles className="w-6 h-6 text-slate-950" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-extrabold text-white">Trình Phân Tích Thực Phẩm AI</h2>
-                        <p className="text-xs text-slate-400">Nhận diện món ăn & định lượng Calorie tự động</p>
+                        <h2 className="text-lg font-extrabold text-white">AI Food Analyzer</h2>
+                        <p className="text-xs text-slate-400">Food recognition & automated calorie quantification</p>
                     </div>
                 </div>
 
@@ -140,7 +140,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                         }`}
                     >
                         <Camera className="w-4 h-4" />
-                        <span>Chụp / Tải Ảnh</span>
+                        <span>Capture / Upload Photo</span>
                     </button>
                     <button
                         onClick={() => {
@@ -155,7 +155,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                         }`}
                     >
                         <Edit3 className="w-4 h-4" />
-                        <span>Nhập Câu Lệnh Text</span>
+                        <span>Enter Text Prompt</span>
                     </button>
                 </div>
 
@@ -182,10 +182,10 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                     <label className="cursor-pointer block py-6">
                                         <Upload className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
                                         <span className="text-xs font-semibold text-slate-200">
-                                            Chạm để chọn ảnh món ăn từ máy hoặc camera
+                                            Tap to select food photo from device or camera
                                         </span>
                                         <span className="block text-[10px] text-slate-500 mt-1">
-                                            Hỗ trợ JPG, PNG, WEBP
+                                            Supports JPG, PNG, WEBP
                                         </span>
                                         <input
                                             type="file"
@@ -199,11 +199,11 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                         ) : (
                             <div>
                                 <label className="block text-xs text-slate-400 mb-1.5">
-                                    Mô tả món ăn của bạn bằng ngôn ngữ tự nhiên
+                                    Describe your meal in natural language
                                 </label>
                                 <textarea
                                     rows={3}
-                                    placeholder="Ví dụ: 1 bát phở bò tái sách và 1 ly trà đá ít đường"
+                                    placeholder="e.g., 1 bowl of Beef Pho with rare steak and 1 iced green tea"
                                     value={textPrompt}
                                     onChange={(e) => setTextPrompt(e.target.value)}
                                     className="w-full bg-slate-800 border border-slate-700 rounded-2xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
@@ -212,7 +212,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                     onClick={() => handleScan()}
                                     className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 mt-3"
                                 >
-                                    Phân Tích Bằng AI →
+                                    Analyze with AI →
                                 </button>
                             </div>
                         )}
@@ -224,10 +224,10 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                     <div className="py-12 text-center space-y-3">
                         <div className="w-14 h-14 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mx-auto" />
                         <p className="text-sm font-bold text-emerald-400">
-                            AI Computer Vision đang bóc tách thực phẩm...
+                            AI Computer Vision is analyzing food components...
                         </p>
                         <p className="text-xs text-slate-400">
-                            Ước tính khối lượng (g), Calorie và Macros chuẩn ground-truth
+                            Estimating portion weight (g), Calories, and Ground-Truth macros
                         </p>
                     </div>
                 )}
@@ -238,23 +238,23 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                         <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 flex items-start space-x-3">
                             <AlertTriangle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
                             <div className="text-left">
-                                <p className="text-sm font-semibold text-rose-400">Không nhận diện được đồ ăn</p>
+                                <p className="text-sm font-semibold text-rose-400">Unable to recognize food</p>
                                 <p className="text-xs text-rose-300/80 mt-1">{scanError}</p>
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <p className="text-xs text-slate-400">💡 Gợi ý:</p>
+                            <p className="text-xs text-slate-400">💡 Tips:</p>
                             <ul className="text-xs text-slate-500 space-y-1">
-                                <li>• Chụp ảnh rõ ràng, đủ sáng của món ăn</li>
-                                <li>• Tránh chụp từ góc quá xiên</li>
-                                <li>• Hoặc hãy nhập tên món ăn bằng text</li>
+                                <li>• Take a clear, well-lit photo of the meal</li>
+                                <li>• Avoid steep camera angles</li>
+                                <li>• Or describe the meal using text prompt</li>
                             </ul>
                         </div>
                         <button
                             onClick={() => setScanError(null)}
                             className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2 rounded-xl text-sm"
                         >
-                            Thử lại
+                            Retry
                         </button>
                     </div>
                 )}
@@ -267,7 +267,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                             <div className="flex items-center space-x-2">
                                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                                 <span className="text-xs font-semibold text-emerald-400">
-                                    Độ tin cậy AI: {Math.round(result.confidence_score * 100)}%
+                                    AI Confidence: {Math.round(result.confidence_score * 100)}%
                                 </span>
                             </div>
                             <button
@@ -275,19 +275,19 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                 className="text-[11px] text-amber-400 hover:underline flex items-center space-x-1"
                             >
                                 <AlertTriangle className="w-3.5 h-3.5" />
-                                <span>Báo AI sai món</span>
+                                <span>Report AI misclassification</span>
                             </button>
                         </div>
 
                         {/* Meal Type selection */}
                         <div>
-                            <label className="block text-xs text-slate-400 mb-1">Bữa ăn</label>
+                            <label className="block text-xs text-slate-400 mb-1">Meal Type</label>
                             <div className="grid grid-cols-4 gap-2">
                                 {[
-                                    { key: "breakfast", name: "Sáng" },
-                                    { key: "lunch", name: "Trưa" },
-                                    { key: "dinner", name: "Tối" },
-                                    { key: "snack", name: "Phụ" },
+                                    { key: "breakfast", name: "Breakfast" },
+                                    { key: "lunch", name: "Lunch" },
+                                    { key: "dinner", name: "Dinner" },
+                                    { key: "snack", name: "Snack" },
                                 ].map((item) => (
                                     <button
                                         key={item.key}
@@ -309,7 +309,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                         <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800 space-y-3">
                             <div>
                                 <label className="block text-[11px] text-slate-400 mb-1">
-                                    Tên món ăn (Cho phép chỉnh sửa)
+                                    Food Name (Editable)
                                 </label>
                                 <input
                                     type="text"
@@ -321,7 +321,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[11px] text-slate-400 mb-1">Khối lượng (g)</label>
+                                    <label className="block text-[11px] text-slate-400 mb-1">Portion Weight (g)</label>
                                     <input
                                         type="number"
                                         value={editWeightG}
@@ -330,7 +330,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] text-slate-400 mb-1">Tổng Calorie (kcal)</label>
+                                    <label className="block text-[11px] text-slate-400 mb-1">Total Calories (kcal)</label>
                                     <input
                                         type="number"
                                         value={editCalories}
@@ -343,18 +343,18 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                             {/* Macros Breakdown */}
                             <div className="grid grid-cols-3 gap-2 pt-1">
                                 <div className="bg-slate-900 p-2 rounded-xl border border-slate-800 text-center">
-                                    <span className="block text-[10px] text-sky-400 font-semibold">Protein (Đạm)</span>
+                                    <span className="block text-[10px] text-sky-400 font-semibold">Protein</span>
                                     <input
                                         type="number"
                                         value={editProtein}
                                         onChange={(e) => setEditProtein(Number(e.target.value))}
                                         className="w-full bg-transparent text-center text-xs text-white font-bold focus:outline-none"
                                     />
-                                    <span className="text-[10px] text-slate-500">gam</span>
+                                    <span className="text-[10px] text-slate-500">grams</span>
                                 </div>
                                 <div className="bg-slate-900 p-2 rounded-xl border border-slate-800 text-center">
                                     <span className="block text-[10px] text-amber-400 font-semibold">
-                                        Carbs (Đường)
+                                        Carbs
                                     </span>
                                     <input
                                         type="number"
@@ -362,11 +362,11 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                         onChange={(e) => setEditCarbs(Number(e.target.value))}
                                         className="w-full bg-transparent text-center text-xs text-white font-bold focus:outline-none"
                                     />
-                                    <span className="text-[10px] text-slate-500">gam</span>
+                                    <span className="text-[10px] text-slate-500">grams</span>
                                 </div>
                                 <div className="bg-slate-900 p-2 rounded-xl border border-slate-800 text-center">
                                     <span className="block text-[10px] text-rose-400 font-semibold">
-                                        Fat (Chất Béo)
+                                        Fat
                                     </span>
                                     <input
                                         type="number"
@@ -374,7 +374,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                         onChange={(e) => setEditFat(Number(e.target.value))}
                                         className="w-full bg-transparent text-center text-xs text-white font-bold focus:outline-none"
                                     />
-                                    <span className="text-[10px] text-slate-500">gam</span>
+                                    <span className="text-[10px] text-slate-500">grams</span>
                                 </div>
                             </div>
                         </div>
@@ -382,7 +382,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                         {/* AI Advice note */}
                         {result.advice && (
                             <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-xs text-emerald-300">
-                                <span className="font-bold">Lời khuyên dinh dưỡng: </span>
+                                <span className="font-bold">Nutritional Advice: </span>
                                 {result.advice}
                             </div>
                         )}
@@ -390,10 +390,10 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                         {/* Report error sub-modal */}
                         {reportOpen && (
                             <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-2">
-                                <span className="text-xs font-bold text-amber-400">Gửi phản hồi AI nhận diện sai:</span>
+                                <span className="text-xs font-bold text-amber-400">Submit AI misclassification feedback:</span>
                                 <input
                                     type="text"
-                                    placeholder="Ghi rõ tên món ăn thực tế..."
+                                    placeholder="Enter true food name..."
                                     value={reportCorrection}
                                     onChange={(e) => setReportCorrection(e.target.value)}
                                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white"
@@ -402,7 +402,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                     onClick={handleReportError}
                                     className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-1.5 rounded-lg"
                                 >
-                                    {reportSuccess ? "Đã gửi báo cáo ✓" : "Gửi cho Admin finetune"}
+                                    {reportSuccess ? "Feedback Sent ✓" : "Submit for Admin Model Tuning"}
                                 </button>
                             </div>
                         )}
@@ -415,18 +415,19 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                 }}
                                 className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 rounded-xl text-xs"
                             >
-                                ← Quét Lại
+                                ← Scan Again
                             </button>
                             <button
                                 onClick={handleSaveToLog}
                                 className="flex-2 bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 px-6 rounded-xl shadow-lg shadow-emerald-500/20 text-xs flex items-center justify-center space-x-1.5"
                             >
                                 <Check className="w-4 h-4" />
-                                <span>Lưu Vào Nhật Ký Bữa Ăn</span>
+                                <span>Log Meal to Daily Journal</span>
                             </button>
                         </div>
                     </div>
                 )}
+
             </div>
         </div>
     );

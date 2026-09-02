@@ -140,7 +140,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 <button
                     onClick={handleClose}
                     className="absolute top-4 right-4 text-slate-400 hover:text-rose-400 p-2 rounded-full hover:bg-slate-800 transition-colors"
-                    title="Đóng (Không lưu thay đổi)"
+                    title="Close (Without saving)"
                 >
                     <X className="w-5 h-5" />
                 </button>
@@ -148,12 +148,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 {/* Header */}
                 <div className="mb-4 pr-8">
                     <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                        Khảo Sát Thể Trạng
+                        Biometrics & Physical Setup
                     </span>
-                    <h2 className="text-lg font-extrabold text-white">Cấu Hình Chỉ Số & Phom Dáng Cơ Thể</h2>
+                    <h2 className="text-lg font-extrabold text-white">Body Profile & Fitness Configuration</h2>
                 </div>
 
-                {/* Method Selector Tabs: 1. Nhập Tay | 2. Phân Tích Bằng AI */}
+                {/* Method Selector Tabs: 1. Manual Input | 2. AI Photo Analysis */}
                 <div className="flex bg-slate-800/80 p-1 rounded-2xl mb-5">
                     <button
                         onClick={() => setMethod("manual")}
@@ -164,7 +164,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         }`}
                     >
                         <Edit3 className="w-4 h-4" />
-                        <span>1. Nhập Tay Thông Số</span>
+                        <span>1. Manual Input</span>
                     </button>
                     <button
                         onClick={() => setMethod("ai")}
@@ -175,7 +175,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         }`}
                     >
                         <Sparkles className="w-4 h-4" />
-                        <span>2. Phân Tích Bằng AI (Ảnh)</span>
+                        <span>2. AI Photo Analysis</span>
                     </button>
                 </div>
 
@@ -184,7 +184,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     <div className="space-y-4 animate-fadeIn">
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs text-slate-400 mb-1">Chiều cao (cm)</label>
+                                <label className="block text-xs text-slate-400 mb-1">Height (cm)</label>
                                 <input
                                     type="number"
                                     value={heightCm}
@@ -193,7 +193,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs text-slate-400 mb-1">Cân nặng hiện tại (kg)</label>
+                                <label className="block text-xs text-slate-400 mb-1">Current Weight (kg)</label>
                                 <input
                                     type="number"
                                     value={currentWeightKg}
@@ -205,7 +205,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs text-slate-400 mb-1">Cân nặng mục tiêu (kg)</label>
+                                <label className="block text-xs text-slate-400 mb-1">Target Weight (kg)</label>
                                 <input
                                     type="number"
                                     value={targetWeightKg}
@@ -214,7 +214,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs text-slate-400 mb-1">Tuổi</label>
+                                <label className="block text-xs text-slate-400 mb-1">Age</label>
                                 <input
                                     type="number"
                                     value={age}
@@ -225,11 +225,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs text-slate-400 mb-1">Giới tính</label>
+                            <label className="block text-xs text-slate-400 mb-1">Gender</label>
                             <div className="grid grid-cols-2 gap-2">
                                 {[
-                                    { id: "male", label: "👨 Nam" },
-                                    { id: "female", label: "👩 Nữ" },
+                                    { id: "male", label: "👨 Male" },
+                                    { id: "female", label: "👩 Female" },
                                 ].map((item) => (
                                     <button
                                         key={item.id}
@@ -248,12 +248,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs text-slate-400 mb-1">Mục tiêu chính</label>
+                            <label className="block text-xs text-slate-400 mb-1">Primary Fitness Goal</label>
                             <div className="grid grid-cols-3 gap-2">
                                 {[
-                                    { id: "weight_loss", label: "Giảm Cân / Siết Mỡ" },
-                                    { id: "muscle_gain", label: "Tăng Cơ / Tăng Cân" },
-                                    { id: "maintain", label: "Duy Trì Vóc Dáng" },
+                                    { id: "weight_loss", label: "Weight Loss / Cut" },
+                                    { id: "muscle_gain", label: "Muscle Gain / Bulk" },
+                                    { id: "maintain", label: "Maintain Fitness" },
                                 ].map((item) => (
                                     <button
                                         key={item.id}
@@ -272,16 +272,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs text-slate-400 mb-1">Mức độ vận động hàng ngày</label>
+                            <label className="block text-xs text-slate-400 mb-1">Daily Activity Level</label>
                             <select
                                 value={activityLevel}
                                 onChange={(e) => setActivityLevel(e.target.value as any)}
                                 className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white"
                             >
-                                <option value="sedentary">Ít vận động (Ngồi văn phòng, không tập thể thao)</option>
-                                <option value="light">Vận động nhẹ (Tập nhẹ 1-3 ngày/tuần)</option>
-                                <option value="moderate">Vận động vừa (Tập 3-5 ngày/tuần)</option>
-                                <option value="active">Năng động cao (Tập nặng 6-7 ngày/tuần)</option>
+                                <option value="sedentary">Sedentary (Desk job, minimal exercise)</option>
+                                <option value="light">Light Activity (Workouts 1-3 days/week)</option>
+                                <option value="moderate">Moderate Activity (Workouts 3-5 days/week)</option>
+                                <option value="active">High Activity (Intense workouts 6-7 days/week)</option>
                             </select>
                         </div>
 
@@ -290,7 +290,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                             disabled={saving}
                             className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-4"
                         >
-                            {saving ? "Đang lưu..." : "Hoàn Tất & Lưu Hồ Sơ Nhập Tay →"}
+                            {saving ? "Saving..." : "Save & Initialize Profile →"}
                         </button>
                     </div>
                 )}
@@ -299,18 +299,18 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 {method === "ai" && (
                     <div className="space-y-4 animate-fadeIn">
                         <div className="p-3 bg-indigo-950/60 border border-indigo-500/30 rounded-2xl flex items-center justify-between text-xs">
-                            <span className="text-indigo-200">✨ Tính năng AI YOLO Pose 17 Keypoints (Đặc quyền gói Pro)</span>
+                            <span className="text-indigo-200">✨ AI YOLO Pose 17 Keypoints Feature (Pro Tier Exclusive)</span>
                             {onOpenSubscription && (
                                 <button
                                     onClick={onOpenSubscription}
                                     className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-[11px] shrink-0"
                                 >
-                                    Nâng Cấp Pro
+                                    Upgrade Pro
                                 </button>
                             )}
                         </div>
                         <p className="text-xs text-slate-400">
-                            Chụp hoặc tải lên ảnh toàn thân rõ ràng để hệ thống phân tích chiều cao, cân nặng và Thang đo BMI 10 cấp độ dựa trên YOLO Pose keypoints.
+                            Upload a clear full-body photo to estimate height, weight, and 10-level BMI scale from YOLO pose skeleton keypoints.
                         </p>
 
 
@@ -323,7 +323,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-xs text-slate-400 mb-1">
-                                    Chiều cao (cm) (Tự cập nhật theo ảnh)
+                                    Height (cm) (Auto-updated by photo)
                                 </label>
                                 <input
                                     type="number"
@@ -334,7 +334,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                             </div>
                             <div>
                                 <label className="block text-xs text-slate-400 mb-1">
-                                    Cân nặng (kg) (Tự cập nhật theo ảnh)
+                                    Weight (kg) (Auto-updated by photo)
                                 </label>
                                 <input
                                     type="number"
@@ -358,7 +358,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                     <button
                                         onClick={handleClearPhoto}
                                         className="absolute -top-2 -right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-full shadow-lg transition-colors"
-                                        title="Xóa ảnh này"
+                                        title="Remove photo"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
@@ -376,10 +376,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                 <label className="cursor-pointer block py-5">
                                     <Upload className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                                     <span className="text-xs font-semibold text-slate-300">
-                                        Chạm để chọn hoặc chụp ảnh Body bằng AI Pose
+                                        Tap to select or capture full-body photo for AI Pose
                                     </span>
                                     <span className="block text-[10px] text-slate-500 mt-1">
-                                        YOLO Pose trích xuất 17 điểm khung xương & tính BMI động
+                                        YOLO Pose extracts 17 skeleton keypoints & calculates dynamic BMI
                                     </span>
                                     <input
                                         type="file"
@@ -395,21 +395,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         {analyzingPhoto && (
                             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center text-xs text-emerald-400 animate-pulse">
                                 <Sparkles className="w-5 h-5 mx-auto mb-1" />
-                                AI YOLO Pose đang trích xuất 17 điểm khung xương & phân tích Thang đo BMI 10 cấp độ...
+                                AI YOLO Pose is extracting 17 skeleton keypoints & analyzing 10-level BMI scale...
                             </div>
                         )}
 
                         {aiBodyAnalysis && !analyzingPhoto && (
                             <div className="p-4 bg-slate-800/80 border border-emerald-500/30 rounded-2xl space-y-3 text-xs">
                                 <div className="flex items-center justify-between font-bold text-emerald-400">
-                                    <span>Dạng cơ thể AI: {aiBodyAnalysis.body_shape}</span>
+                                    <span>AI Body Shape: {aiBodyAnalysis.body_shape}</span>
                                     <span>TDEE: {aiBodyAnalysis.tdee} kcal</span>
                                 </div>
 
                                 {aiBodyAnalysis.bmi_level && (
                                     <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-700">
                                         <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
-                                            <span className="text-amber-400">📊 Thang đo BMI: Cấp {aiBodyAnalysis.bmi_level}/10</span>
+                                            <span className="text-amber-400">📊 BMI Scale: Level {aiBodyAnalysis.bmi_level}/10</span>
                                             <span className="text-emerald-300">{aiBodyAnalysis.bmi_level_label}</span>
                                         </div>
                                         <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex">
@@ -444,10 +444,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                             disabled={saving}
                             className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
                         >
-                            {saving ? "Đang lưu..." : "Hoàn Tất & Lưu Kết Quả Phân Tích AI →"}
+                            {saving ? "Saving..." : "Save & Initialize AI Analysis →"}
                         </button>
                     </div>
                 )}
+
             </div>
         </div>
     );

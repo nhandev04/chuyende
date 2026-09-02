@@ -144,3 +144,22 @@ class AIReportCreate(BaseModel):
     food_log_id: Optional[int] = None
     original_prediction: str
     user_correction: str
+
+# Admin Schemas
+class FoodDatabaseCreate(BaseModel):
+    food_name: str
+    category: str
+    calories_per_100g: float
+    protein_per_100g: float
+    carbs_per_100g: float
+    fat_per_100g: float
+    image_url: Optional[str] = None
+
+class AIReportUpdate(BaseModel):
+    status: str # "resolved" or "dismissed"
+    add_to_ground_truth: Optional[bool] = False
+
+class AdminUserUpdate(BaseModel):
+    role: Optional[str] = None # "user" or "admin"
+    plan: Optional[str] = None # "standard", "plus", "pro"
+

@@ -15,54 +15,54 @@ def get_bmi_10_level_scale(bmi: float, goal: str = "weight_loss") -> Dict[str, A
     """
     if bmi < 16.5:
         level = 1
-        label = "Gầy rất nặng (Severely Underweight)"
+        label = "Severely Underweight"
         shape = "Severe Ectomorph"
-        rec = f"🚨 THANG 1/10 - {label}: Chỉ số BMI {bmi} ở mức báo động thiếu cân. Bạn nên tăng ngay +500 đến +700 kcal/ngày, bổ sung thực phẩm giàu đạm (thịt đỏ, cá, trứng), uống thêm sữa và chia thành 5-6 bữa nhỏ/ngày."
+        rec = f"🚨 SCALE 1/10 - {label}: BMI of {bmi} is at a severe underweight alert level. Increase daily intake by +500 to +700 kcal, focus on lean protein (red meat, fish, eggs), add milk, and divide meals into 5-6 small portions daily."
     elif bmi < 17.5:
         level = 2
-        label = "Gầy vừa (Moderately Underweight)"
+        label = "Moderately Underweight"
         shape = "Skinny / Ectomorph"
-        rec = f"⚠️ THANG 2/10 - {label}: Chỉ số BMI {bmi} cho thấy thể trạng thiếu cân rõ rệt. Khuyên dùng chế độ thặng dư Calo (+400 kcal/ngày), ăn thêm các loại hạt (hạnh nhân, óc chó) và quả bơ."
+        rec = f"⚠️ SCALE 2/10 - {label}: BMI of {bmi} indicates moderate underweight status. A caloric surplus (+400 kcal/day) with healthy fats (nuts, seeds, avocados) is strongly recommended."
     elif bmi < 18.5:
         level = 3
-        label = "Gầy nhẹ (Mildly Underweight)"
+        label = "Mildly Underweight"
         shape = "Mild Ectomorph"
-        rec = f"🟡 THANG 3/10 - {label}: Chỉ số BMI {bmi} chớm chạm ngưỡng thiếu cân. Bạn nên thặng dư nhẹ (+300 kcal/ngày) kết hợp tập kháng lực (Gym/Resistance) để xây dựng khối lượng cơ bắp."
+        rec = f"🟡 SCALE 3/10 - {label}: BMI of {bmi} is slightly below the normal threshold. Maintain a mild surplus (+300 kcal/day) combined with progressive resistance training to build muscle mass."
     elif bmi < 20.5:
         level = 4
-        label = "Bình thường - Thon gọn (Normal Low)"
+        label = "Normal - Slim Fit"
         shape = "Slim Fit / Lean"
-        rec = f"✅ THANG 4/10 - {label}: Chỉ số BMI {bmi} ở ngưỡng khỏe mạnh mảnh mai. Duy trì tỷ lệ đạm/đường/béo cân bằng (40% Carbs, 30% Protein, 30% Fat) và tập thể thao đều đặn."
+        rec = f"✅ SCALE 4/10 - {label}: BMI of {bmi} is in the healthy lean range. Maintain a balanced macronutrient distribution (40% Carbs, 30% Protein, 30% Fat) with regular physical activity."
     elif bmi < 23.0:
         level = 5
-        label = "Bình thường - Lý tưởng (Normal Ideal)"
+        label = "Normal - Ideal Fit"
         shape = "Fit / Athletic Ideal" if goal == "muscle_gain" else "Ideal Mesomorph"
-        rec = f"🌟 THANG 5/10 - {label}: Chỉ số BMI {bmi} LÝ TƯỞNG NHẤT (Chuẩn Châu Á). Tỷ lệ cơ thể rất đẹp! Hãy giữ vững mức TDEE hiện tại và ưu tiên thực phẩm tươi sống (Whole Foods)."
+        rec = f"🌟 SCALE 5/10 - {label}: BMI of {bmi} is IDEAL (Asian-Pacific standard). Outstanding body composition! Maintain your current TDEE target and prioritize nutrient-dense whole foods."
     elif bmi < 25.0:
         level = 6
-        label = "Tiền thừa cân (Overweight Threshold)"
+        label = "Overweight Threshold"
         shape = "Slightly High / Soft"
-        rec = f"⚠️ THANG 6/10 - {label}: Chỉ số BMI {bmi} chạm ngưỡng chớm thừa cân. Bạn nên thâm hụt nhẹ (-200 kcal/ngày) hoặc tăng cường Cardio 150 phút/tuần để tránh tích mỡ bụng."
+        rec = f"⚠️ SCALE 6/10 - {label}: BMI of {bmi} reaches the overweight boundary. A mild caloric deficit (-200 kcal/day) or 150 minutes of weekly cardio is recommended to prevent abdominal fat accumulation."
     elif bmi < 27.5:
         level = 7
-        label = "Thừa cân độ 1 (Overweight Grade 1)"
+        label = "Overweight Grade 1"
         shape = "Overweight / Soft"
-        rec = f"🔴 THANG 7/10 - {label}: Chỉ số BMI {bmi} thuộc diện thừa cân rõ rệt. Cần thiết lập thâm hụt Calo chuẩn (-400 kcal/ngày), hạn chế tinh bột nhanh, nước ngọt và trà sữa."
+        rec = f"🔴 SCALE 7/10 - {label}: BMI of {bmi} shows noticeable overweight status. Establish a standard deficit (-400 kcal/day), limit refined carbohydrates, sugary beverages, and processed snacks."
     elif bmi < 30.0:
         level = 8
-        label = "Tiền béo phì (Pre-Obese)"
+        label = "Pre-Obese"
         shape = "Pre-Obese Endomorph"
-        rec = f"⚠️ THANG 8/10 - {label}: Chỉ số BMI {bmi} cảnh báo tiền béo phì. Khuyên thâm hụt Calo nghiêm ngặt (-500 kcal/ngày), kết hợp 45 phút Cardio + tập Gym mỗi ngày để đốt mỡ nội tạng."
+        rec = f"⚠️ SCALE 8/10 - {label}: BMI of {bmi} indicates pre-obese risk. Strictly enforce a caloric deficit (-500 kcal/day) combined with 45 minutes of daily cardio and strength exercise."
     elif bmi < 35.0:
         level = 9
-        label = "Béo phì độ 1 (Obese Class I)"
+        label = "Obese Class I"
         shape = "Obese Class I / Endomorph"
-        rec = f"🚨 THANG 9/10 - {label}: Chỉ số BMI {bmi} rủi ro cao về huyết áp & mỡ máu. Cần cắt giảm 500-600 kcal/ngày, ưu tiên đi bộ/bơi lội nhẹ nhàng để giảm tải cho khớp gối."
+        rec = f"🚨 SCALE 9/10 - {label}: BMI of {bmi} carries elevated cardiovascular risk. Reduce daily intake by 500-600 kcal, prioritizing low-impact activities (brisk walking, swimming) to protect joint health."
     else:
         level = 10
-        label = "Béo phì độ 2+ (Obese Class II / Severe)"
+        label = "Obese Class II / Severe"
         shape = "Severe Obese Endomorph"
-        rec = f"🚨 THANG 10/10 - {label}: CẢNH BÁO BÉO PHÌ MỨC NẶNG (BMI {bmi}). Cần can thiệp chế độ ăn thâm hụt soát chặt, tuyệt đối kiêng đồ ngọt/chất béo xấu và tham khảo ý kiến y khoa."
+        rec = f"🚨 SCALE 10/10 - {label}: SEVERE OBESITY WARNING (BMI {bmi}). Immediate controlled caloric deficit intervention is required. Strictly eliminate added sugars/trans fats and consult a medical healthcare professional."
 
     return {
         "bmi_level": level,
@@ -143,15 +143,15 @@ def analyze_food_fallback(text_prompt: Optional[str] = None, filename: Optional[
                     "carbs_g": round(item.carbs_per_100g * ratio, 1),
                     "fat_g": round(item.fat_per_100g * ratio, 1),
                     "confidence_score": 0.96,
-                    "detected_items": [item.food_name, "Gia vị chuẩn"],
-                    "advice": f"Món ăn chuẩn trong thư viện ground-truth ({item.category}). Cân đối 3 nhóm chất."
+                    "detected_items": [item.food_name, "Standard Seasoning"],
+                    "advice": f"Matched ground-truth item in library ({item.category}). Balanced macronutrient profile."
                 }
     except Exception as e:
         logger.warning(f"Error querying FoodDatabase: {e}")
     finally:
         db.close()
 
-    food_title = text_prompt.capitalize() if text_prompt else "Phở Bò Tái Sách"
+    food_title = text_prompt.capitalize() if text_prompt else "Beef Noodle Soup (Pho)"
     return {
         "food_name": food_title,
         "estimated_weight_g": 400.0,
@@ -160,8 +160,8 @@ def analyze_food_fallback(text_prompt: Optional[str] = None, filename: Optional[
         "carbs_g": 58.0,
         "fat_g": 14.2,
         "confidence_score": 0.92,
-        "detected_items": [food_title, "Rau kèm", "Nước dùng"],
-        "advice": "Bữa ăn giàu đạm và tinh bột. Hạn chế dùng hết nước lèo nếu muốn giảm muối."
+        "detected_items": [food_title, "Fresh Herbs", "Broth"],
+        "advice": "High protein and complex carbs meal. Consider moderation on broth consumption to control sodium intake."
     }
 
 
@@ -177,23 +177,23 @@ def generate_diet_recommendations(
     
     if diff > 300:
         status = "over_budget"
-        advice = f"⚠️ Bạn đã nạp vượt mức {int(diff)} kcal so với target hôm nay. Hãy đi bộ 30 phút hoặc giảm bớt khẩu phần ăn tối."
+        advice = f"⚠️ You have exceeded your daily target by {int(diff)} kcal today. Consider a 30-minute walk or reducing evening dinner portions."
         suggested_meals = [
-            {"meal": "Tối", "suggestion": "Salad ức gà không sốt béo hoặc 1 ly đạm Whey", "calories": 200},
-            {"meal": "Phụ", "suggestion": "Trà xanh ấm hoặc Nước lọc", "calories": 0}
+            {"meal": "Dinner", "suggestion": "Grilled Chicken Salad without heavy dressing or 1 Whey Protein Shake", "calories": 200},
+            {"meal": "Snack", "suggestion": "Warm Green Tea or Pure Water", "calories": 0}
         ]
     elif diff < -500:
         status = "under_budget"
-        advice = f"❌ Bạn còn thiếu {int(abs(diff))} kcal để đạt mức calo tối thiểu. Hãy nạp thêm thực phẩm lành mạnh để không bị hạ đường huyết."
+        advice = f"❌ You are {int(abs(diff))} kcal below your minimum threshold. Fuel up with nutrient-dense foods to prevent hypoglycemia."
         suggested_meals = [
-            {"meal": "Tối", "suggestion": "Cơm lứt ức gà áp chảo + 1 bát phở bò nạc", "calories": 480},
-            {"meal": "Phụ", "suggestion": "1 Quả chuối + 30g Hạt hạnh nhân", "calories": 180}
+            {"meal": "Dinner", "suggestion": "Pan-seared chicken breast with brown rice + 1 bowl of lean beef soup", "calories": 480},
+            {"meal": "Snack", "suggestion": "1 Banana + 30g Almonds", "calories": 180}
         ]
     else:
         status = "on_track"
-        advice = "✅ Chỉ số nạp Calo rất chuẩn xác! Duy trì thói quen này để đạt vóc dáng mong muốn đúng tiến độ."
+        advice = "✅ Excellent caloric balance! Maintain this habit to achieve your fitness goals right on schedule."
         suggested_meals = [
-            {"meal": "Tối", "suggestion": "Cá hồi áp chảo + Măng tây luộc + 1/2 chén cơm gạo lứt", "calories": 400}
+            {"meal": "Dinner", "suggestion": "Pan-seared Salmon + Steamed Asparagus + 1/2 bowl of brown rice", "calories": 400}
         ]
         
     return {

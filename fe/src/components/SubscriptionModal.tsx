@@ -26,7 +26,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
   const handleSubscribe = async (planId: 'plus' | 'pro') => {
     if (!currentUser) {
-      setErrorMessage("Vui lòng đăng nhập để thực hiện nâng cấp gói.");
+      setErrorMessage("Please sign in to upgrade your subscription tier.");
       return;
     }
 
@@ -41,13 +41,13 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       // Perform direct upgrade / simulate Stripe redirect
       const updatedUser = await api.upgradeSubscription(planId, currentUser.user_id);
       onPlanUpgraded(updatedUser);
-      setSuccessMessage(`🎉 Bạn đã nâng cấp thành công lên gói ${planId.toUpperCase()}!`);
+      setSuccessMessage(`🎉 You have successfully upgraded to ${planId.toUpperCase()} tier!`);
       
       if (session.checkout_url && !session.checkout_url.includes("demo_success")) {
         window.location.href = session.checkout_url;
       }
     } catch (err: any) {
-      setErrorMessage(err.message || "Không thể khởi tạo thanh toán Stripe. Vui lòng thử lại.");
+      setErrorMessage(err.message || "Failed to initialize Stripe checkout. Please try again.");
     } finally {
       setLoadingPlan(null);
     }
@@ -56,48 +56,48 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   const plans: SubscriptionPlan[] = [
     {
       id: 'standard',
-      name: 'Standard (Miễn Phí)',
+      name: 'Standard (Free Tier)',
       price_vnd: 0,
-      price_display: '0 VNĐ / tháng',
-      badge: 'Cơ Bản',
+      price_display: '$0 / month',
+      badge: 'Free',
       is_current_default: true,
       features: [
-        'Nhập nhật ký bữa ăn thủ công',
-        'Theo dõi cân nặng & chỉ số BMI',
-        'Quản lý hồ sơ sức khỏe cơ bản',
-        'Hạn chế tính năng AI nâng cao'
+        'Manual food logging',
+        'Basic weight & BMI tracking',
+        'Personal profile management'
       ]
     },
     {
       id: 'plus',
-      name: 'Plus (Phân Tích Đồ Ăn)',
+      name: 'Plus (Food Scanner Tier)',
       price_vnd: 25000,
-      price_display: '25.000 VNĐ / tháng',
-      badge: 'Phổ Biến Nhất',
+      price_display: '~$1.00 / month (25,000 VND)',
+      badge: 'Most Popular',
       is_current_default: false,
       features: [
-        'Tất cả tính năng bản Standard',
-        '⚡ AI Quét ảnh món ăn tự động (YOLOv8)',
-        'Định lượng Calo, Protein, Carbs, Fat từ ảnh',
-        'Cơ sở dữ liệu thực phẩm chuẩn Ground-Truth'
+        'All Standard tier features',
+        '⚡ AI Food Image Scanning (YOLOv8)',
+        'Automated Calorie, Protein, Carbs, Fat analysis',
+        'Ground-Truth food database access'
       ]
     },
     {
       id: 'pro',
-      name: 'Pro (Chuyên Gia AI)',
+      name: 'Pro (AI Expert Tier)',
       price_vnd: 50000,
-      price_display: '50.000 VNĐ / tháng',
-      badge: 'Đặc Quyền Cao Cấp',
+      price_display: '~$2.00 / month (50,000 VND)',
+      badge: 'Premium Exclusive',
       is_current_default: false,
       features: [
-        'Tất cả tính năng bản Plus',
-        '👑 AI Phân tích vóc dáng toàn thân (YOLO Pose)',
-        'Thang đo BMI 10 Cấp độ & Khuyên năng lượng',
-        '🥗 Gợi ý bữa ăn cá nhân hóa AI hàng ngày',
-        'Xuất báo cáo dinh dưỡng & Ưu tiên AI'
+        'All Plus tier features',
+        '👑 Full-body AI Pose Analysis (YOLO Pose)',
+        '10-Level BMI Scale & Biometric advice',
+        '🥗 Daily AI Recommended Meal Plan',
+        'Priority support & Detailed nutrition reports'
       ]
     }
   ];
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
@@ -114,11 +114,11 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
           </button>
           
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-semibold uppercase tracking-wider mb-2">
-            <Sparkles className="w-4 h-4 text-amber-300" /> Bảng Giá & Đặc Quyền Dịch Vụ AI
+            <Sparkles className="w-4 h-4 text-amber-300" /> AI Services & Pricing Matrix
           </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold">Nâng Cấp Trải Nghiệm HealthLens AI</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold">Upgrade Your HealthLens AI Experience</h2>
           <p className="text-sm md:text-base text-emerald-100 mt-2 max-w-xl mx-auto">
-            Chọn gói dịch vụ phù hợp để mở khóa sức mạnh trí tuệ nhân tạo nhận diện thực phẩm & phân tích hình thể toàn diện.
+            Select the right plan to unlock food computer vision & comprehensive body silhouette analysis.
           </p>
         </div>
 
@@ -165,7 +165,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   </span>
                   {isCurrent && (
                     <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/50 px-2.5 py-1 rounded-full border border-emerald-300">
-                      Gói Hiện Tại
+                      Current Plan
                     </span>
                   )}
                 </div>
@@ -203,14 +203,14 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                       disabled
                       className="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold rounded-xl cursor-default text-sm"
                     >
-                      Đang Sử Dụng
+                      Active Plan
                     </button>
                   ) : plan.id === 'standard' ? (
                     <button
                       disabled
                       className="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-400 font-semibold rounded-xl text-sm"
                     >
-                      Gói Mặc Định
+                      Default Tier
                     </button>
                   ) : (
                     <button
@@ -223,7 +223,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                       }`}
                     >
                       <CreditCard className="w-4 h-4" />
-                      {loadingPlan === plan.id ? 'Đang Xử Lý Stripe...' : `Nâng Cấp ${plan.id.toUpperCase()} (Stripe)`}
+                      {loadingPlan === plan.id ? 'Processing Stripe...' : `Upgrade ${plan.id.toUpperCase()} (Stripe)`}
                     </button>
                   )}
                 </div>
@@ -235,8 +235,9 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         {/* Footer info */}
         <div className="bg-slate-50 dark:bg-slate-800/50 p-4 border-t border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-500" />
-          Thanh toán bảo mật qua cổng kết nối Stripe. Hỗ trợ hủy gói bất kỳ lúc nào không tốn phí phát sinh.
+          Secure checkout powered by Stripe. Cancel anytime without hidden fees.
         </div>
+
       </div>
     </div>
   );

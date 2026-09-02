@@ -33,14 +33,14 @@ def analyze_food(
         if user and user.role != "admin" and user.plan not in ["plus", "pro"]:
             raise HTTPException(
                 status_code=403,
-                detail="🔒 Tính năng AI Quét ảnh món ăn chỉ dành cho tài khoản Plus (25.000đ/tháng) hoặc Pro (50.000đ/tháng). Vui lòng nâng cấp gói để sử dụng."
+                detail="🔒 AI Food Image Scanning requires Plus or Pro tier. Please upgrade your subscription to unlock."
             )
 
     # Validate input
     if not food_image and not text_prompt:
         raise HTTPException(
             status_code=400,
-            detail="Vui lòng cung cấp ảnh đồ ăn hoặc tên món ăn"
+            detail="Please provide a food image or describe the food name"
         )
     
     temp_path = None
@@ -57,7 +57,7 @@ def analyze_food(
         if res is None:
             raise HTTPException(
                 status_code=400,
-                detail="❌ Không nhận diện được đồ ăn. Vui lòng cung cấp ảnh rõ ràng hơn hoặc nhập tên món ăn."
+                detail="❌ Unable to recognize food in image. Please provide a clearer photo or enter food name."
             )
         
         return AIAnalysisResult(
@@ -88,7 +88,7 @@ def get_pro_daily_meal_recommendations(user_id: int, db: Session = Depends(get_d
     if user and user.role != "admin" and user.plan != "pro":
         raise HTTPException(
             status_code=403,
-            detail="🔒 Tính năng 'Gợi ý bữa ăn hàng ngày' chỉ dành riêng cho bản Pro (50.000đ/tháng). Vui lòng nâng cấp gói Pro để trải nghiệm."
+            detail="🔒 'Daily Meal Recommendation' feature is exclusive to Pro tier users. Please upgrade to Pro tier to unlock."
         )
 
     profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
@@ -123,4 +123,5 @@ def create_ai_report(user_id: int, report_in: AIReportCreate, db: Session = Depe
     db.add(report)
     db.commit()
     db.refresh(report)
-    return {"message": "Cảm ơn bạn đã gửi báo cáo! Dữ liệu sẽ được dùng để huấn luyện AI chính xác hơn.", "report_id": report.id}
+    return {"message": "Thank you for submitting your feedback! Data will be used to improve AI model accuracy.", "report_id": report.id}
+

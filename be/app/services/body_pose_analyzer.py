@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Any, Dict, List, Optional
 
 import cv2
@@ -9,6 +10,10 @@ logger = logging.getLogger(__name__)
 
 _POSE_MODEL: Optional[YOLO] = None
 _ARUCO_DETECTOR: Optional[Any] = None
+
+POSE_MODEL_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "models", "yolov8n-pose.pt")
+)
 
 ARUCO_DICTIONARY = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 ARUCO_PARAMETERS = cv2.aruco.DetectorParameters()
@@ -30,14 +35,16 @@ def get_pose_model() -> YOLO:
         return _POSE_MODEL
 
     try:
-        _POSE_MODEL = YOLO("yolov8n-pose.pt")
-        logger.info("Loaded YOLO pose model: yolov8n-pose.pt")
+        _POSE_MODEL = YOLO(POSE_MODEL_PATH)
+        logger.info(f"Loaded YOLO pose model from {POSE_MODEL_PATH}")
         return _POSE_MODEL
     except Exception as exc:
         logger.exception("Failed to load YOLO pose model for full-body analysis")
         raise RuntimeError(
-            "YOLO pose model chưa sẵn sàng hoặc chưa tải được. Vui lòng kiểm tra mạng / môi trường Python."
+            "YOLO pose model is not ready or could not be loaded. Please check your network or Python environment."
         ) from exc
+
+
 
 
 def _detect_aruco_markers(image: np.ndarray) -> List[Dict[str, float]]:
@@ -170,7 +177,7 @@ def predict_height_weight_from_body(image_path: str) -> Dict[str, Any]:
             "predicted_weight_kg": None,
             "confidence_score": 0.0,
             "model_info": "No full-body person detected",
-            "error": "Không phát hiện được người trong ảnh.",
+            "error": "No person detected in the photo.",
         }
 
     best_detection: Optional[Dict[str, Any]] = None
@@ -208,8 +215,9 @@ def predict_height_weight_from_body(image_path: str) -> Dict[str, Any]:
             "predicted_weight_kg": None,
             "confidence_score": 0.0,
             "model_info": "YOLO Pose (body proportions)",
-            "error": "Không thể ước tính chiều cao: ảnh không có người đủ rõ hoặc góc chụp không phù hợp.",
+            "error": "Unable to estimate height: photo does not contain a clear full-body view or camera angle is unsuitable.",
         }
+
 
     logger.info(
         "Body pose estimate: height_cm=%s, weight_kg=%s, confidence=%s",

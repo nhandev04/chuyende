@@ -95,7 +95,7 @@ def analyze_body_pose(
         if user and user.role != "admin" and user.plan != "pro":
             raise HTTPException(
                 status_code=403,
-                detail="🔒 Tính năng Phân tích vóc dáng AI (YOLO Pose) chỉ dành riêng cho tài khoản Pro (50.000đ/tháng). Vui lòng nâng cấp gói Pro để sử dụng."
+                detail="🔒 Full-body AI body analysis (YOLO Pose) is exclusive to Pro tier users. Please upgrade to Pro tier to unlock."
             )
 
     temp_path = None
@@ -126,7 +126,7 @@ def analyze_body_pose(
             if pred_height is None or pred_weight is None or confidence <= 0.0:
                 raise HTTPException(
                     status_code=400,
-                    detail="❌ Không nhận diện được cơ thể từ ảnh này. Vui lòng gửi ảnh toàn thân rõ ràng, đủ sáng và không cắt ngang cơ thể."
+                    detail="❌ Unable to detect body keypoints from this photo. Please upload a well-lit, uncropped full-body photo."
                 )
 
         except HTTPException:
@@ -135,14 +135,15 @@ def analyze_body_pose(
             logger.error(f"Error during body pose analysis: {e}")
             raise HTTPException(
                 status_code=400,
-                detail="❌ Không thể phân tích ảnh toàn thân. Hãy thử ảnh rõ hơn, chụp từ đầu tới chân và đảm bảo ánh sáng tốt."
+                detail="❌ Unable to process body pose analysis. Please try a clearer head-to-toe photo with adequate lighting."
             )
 
     if pred_height is None or pred_weight is None or confidence <= 0.0:
         raise HTTPException(
             status_code=400,
-            detail="❌ Không nhận diện được cơ thể từ ảnh này. Vui lòng gửi ảnh toàn thân rõ ràng, đủ sáng và không cắt ngang cơ thể."
+            detail="❌ Unable to detect body keypoints from this photo. Please upload a well-lit, uncropped full-body photo."
         )
+
 
     try:
         result = compute_body_metrics(pred_height, pred_weight, age, gender, goal)

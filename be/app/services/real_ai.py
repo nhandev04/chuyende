@@ -208,11 +208,12 @@ def analyze_body_photo_cv(
     final_shape = f"{shape_category} • {somatotype}"
 
     recommendation = (
-        f"AI Computer Vision ước tính trực tiếp từ hình ảnh: "
-        f"Chiều cao ~{est_height_cm}cm, Cân nặng ~{est_weight_kg}kg, Phom dáng: {final_shape} (Tỷ lệ Vai/Eo: {v_taper_index}). "
-        f"Chỉ số BMI: {base_analysis['bmi']}, % mỡ ước tính: {base_analysis['estimated_body_fat_pct']}%. "
-        f"Mức TDEE duy trì: {base_analysis['tdee']} kcal/ngày."
+        f"AI Computer Vision estimation from photo: "
+        f"Height ~{est_height_cm}cm, Weight ~{est_weight_kg}kg, Somatotype: {final_shape} (Shoulder/Waist ratio: {v_taper_index}). "
+        f"BMI: {base_analysis['bmi']}, Est. Body Fat: {base_analysis['estimated_body_fat_pct']}%. "
+        f"Maintenance TDEE target: {base_analysis['tdee']} kcal/day."
     )
+
 
     return {
         "body_shape": final_shape,

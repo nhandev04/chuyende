@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import type { User, UserProfile } from './types';
 import { api } from './services/api';
 import { Header } from './components/Header';
@@ -15,6 +16,30 @@ import { AdminPage } from './pages/AdminPage';
 
 import { SubscriptionModal } from './components/SubscriptionModal';
 
+function ClerkUserSync({ onSynced }: { onSynced: (user: User) => void }) {
+  const { isSignedIn, user: clerkUser } = useUser();
+  const [syncedId, setSyncedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function sync() {
+      if (isSignedIn && clerkUser && clerkUser.id !== syncedId) {
+        try {
+          const email = clerkUser.primaryEmailAddress?.emailAddress || `${clerkUser.id}@clerk.user`;
+          const fullName = clerkUser.fullName || clerkUser.firstName || '';
+          const backendUser = await api.clerkSync(clerkUser.id, email, fullName);
+          setSyncedId(clerkUser.id);
+          onSynced(backendUser);
+        } catch (err) {
+          console.warn("Clerk sync notice:", err);
+        }
+      }
+    }
+    sync();
+  }, [isSignedIn, clerkUser, syncedId, onSynced]);
+
+  return null;
+}
+
 export function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('health_app_theme');
@@ -22,7 +47,6 @@ export function App() {
   });
 
   const [user, setUser] = useState<User | null>(() => api.getStoredUser());
-
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'profile' | 'admin'>('dashboard');
@@ -52,6 +76,7 @@ export function App() {
     }
     loadUserProfile();
   }, [user, refreshKey]);
+
 
 
   const handleAuthSuccess = async (authUser: User, isNewRegistration: boolean = false) => {
@@ -106,7 +131,10 @@ export function App() {
       isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
     } font-sans selection:bg-emerald-500 selection:text-slate-950`}>
       
+      <ClerkUserSync onSynced={(syncedUser) => handleAuthSuccess(syncedUser, false)} />
+
       {/* Header Bar */}
+
       <Header
         user={user}
         profile={profile}

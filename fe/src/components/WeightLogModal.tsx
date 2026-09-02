@@ -62,13 +62,13 @@ export const WeightLogModal: React.FC<WeightLogModalProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-teal-500/20">
             <Scale className="w-6 h-6 text-slate-950" />
           </div>
-          <h3 className="text-lg font-bold">Cập Nhật Cân Nặng Hôm Nay</h3>
-          <p className="text-xs text-slate-400">Theo dõi sự biến động thể trạng theo thời gian</p>
+          <h3 className="text-lg font-bold">Record Today's Weight</h3>
+          <p className="text-xs text-slate-400">Track body weight fluctuations over time</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs text-slate-400 mb-1.5 text-center">Số kg thực tế</label>
+            <label className="block text-xs text-slate-400 mb-1.5 text-center">Actual weight (kg)</label>
             <div className="relative max-w-[180px] mx-auto">
               <input
                 type="number"
@@ -88,9 +88,10 @@ export const WeightLogModal: React.FC<WeightLogModalProps> = ({
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-sm flex items-center justify-center space-x-1.5"
           >
             <Check className="w-4 h-4" />
-            <span>Lưu Số Cân Nặng</span>
+            <span>Save Weight Entry</span>
           </button>
         </form>
+
       </div>
     </div>
   );

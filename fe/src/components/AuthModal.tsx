@@ -49,17 +49,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     }
   };
 
-  const handleQuickDemo = async (role: 'user' | 'admin') => {
-    try {
-      const demoEmail = role === 'admin' ? 'admin@uit.edu.vn' : 'demouser@uit.edu.vn';
-      const demoPass = role === 'admin' ? 'admin123' : '123456';
-      const user = await api.login(demoEmail, demoPass);
-      onSuccess(user, false);
-      onClose();
-    } catch (err: any) {
-      setError(err.message || "Đăng nhập tài khoản demo thất bại.");
-    }
-  };
+
+
 
   const handleClerkGoogleLogin = async () => {
     setLoading(true);
@@ -68,17 +59,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       if (clerk && clerk.openSignIn) {
         clerk.openSignIn({});
       } else {
-        throw new Error("⚠️ Chưa cấu hình VITE_CLERK_PUBLISHABLE_KEY trong file fe/.env. Vui lòng thêm VITE_CLERK_PUBLISHABLE_KEY=pk_test_... để chạy Clerk OAuth Google thật.");
+        throw new Error("⚠️ VITE_CLERK_PUBLISHABLE_KEY is not configured in fe/.env. Please add VITE_CLERK_PUBLISHABLE_KEY=pk_test_... to run live Clerk Google OAuth.");
       }
     } catch (err: any) {
-      setError(err.message || "Đăng nhập Google qua Clerk thất bại.");
+      setError(err.message || "Google Sign-In via Clerk failed.");
     } finally {
       setLoading(false);
     }
   };
-
-
-
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
@@ -96,8 +84,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/30">
             <Sparkles className="w-7 h-7 text-slate-950" />
           </div>
-          <h2 className="text-xl font-bold">Chào mừng tới HealthLens AI</h2>
-          <p className="text-xs text-slate-400 mt-1">Đăng nhập nhanh với Clerk OAuth hoặc Tài khoản Quản trị</p>
+          <h2 className="text-xl font-bold">Welcome to HealthLens AI</h2>
+          <p className="text-xs text-slate-400 mt-1">Sign in with Clerk OAuth or System Admin Account</p>
         </div>
 
         {/* Clerk Google Login Button */}
@@ -112,12 +100,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
           </svg>
-          Đăng nhập với Google (Xác thực Clerk)
+          Sign in with Google (Clerk Auth)
         </button>
 
         <div className="flex items-center my-4">
           <div className="flex-1 border-t border-slate-800"></div>
-          <span className="px-3 text-xs text-slate-500 uppercase tracking-wider font-semibold">Hoặc Tài khoản Hệ thống</span>
+          <span className="px-3 text-xs text-slate-500 uppercase tracking-wider font-semibold">Or System Account</span>
           <div className="flex-1 border-t border-slate-800"></div>
         </div>
 
@@ -129,7 +117,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               tab === 'login' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đăng Nhập / Admin
+            Sign In / Admin
           </button>
           <button
             onClick={() => { setTab('register'); setError(''); }}
@@ -137,7 +125,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               tab === 'register' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đăng Ký Mới
+            Create Account
           </button>
         </div>
 
@@ -150,13 +138,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         <form onSubmit={handleSubmit} className="space-y-4">
           {tab === 'register' && (
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Họ & Tên</label>
+              <label className="block text-xs text-slate-400 mb-1">Full Name</label>
               <div className="relative">
                 <UserIcon className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
                 <input
                   type="text"
                   required
-                  placeholder="Nguyễn Văn A"
+                  placeholder="Nguyen Van A"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500"
@@ -166,13 +154,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           )}
 
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Email</label>
+            <label className="block text-xs text-slate-400 mb-1">Email Address</label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
               <input
                 type="email"
                 required
-                placeholder="admin@uit.edu.vn hoặc email cá nhân"
+                placeholder="admin@uit.edu.vn or personal email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500"
@@ -181,7 +169,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           </div>
 
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Mật khẩu</label>
+            <label className="block text-xs text-slate-400 mb-1">Password</label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
               <input
@@ -200,30 +188,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             disabled={loading}
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 hover:opacity-95 transition-opacity"
           >
-            {loading ? 'Đang xử lý...' : tab === 'login' ? 'Đăng Nhập System' : 'Tạo Tài Khoản & Tiếp Tục →'}
+            {loading ? 'Processing...' : tab === 'login' ? 'System Sign In' : 'Create Account & Continue →'}
           </button>
         </form>
-
-        {/* Quick Demo Login Shortcut */}
-        <div className="mt-6 pt-4 border-t border-slate-800 text-center">
-          <p className="text-xs text-slate-500 mb-3">Dùng thử nhanh tài khoản Admin/User:</p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleQuickDemo('user')}
-              className="flex-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs py-2 rounded-xl font-medium border border-emerald-500/30"
-            >
-              🚀 User Demo
-            </button>
-            <button
-              onClick={() => handleQuickDemo('admin')}
-              className="flex-1 bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs py-2 rounded-xl font-medium border border-amber-500/30"
-            >
-              ⚡ Admin Demo (Tài khoản riêng)
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
-
 };
+

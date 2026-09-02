@@ -67,7 +67,7 @@ def get_nutrition_summary(user_id: int, db: Session = Depends(get_db)):
 
     # Weekly chart data (7 days)
     weekly_data = []
-    days_map = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+    days_map = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     for i in range(6, -1, -1):
         day_date = today - timedelta(days=i)
         d_start = datetime.combine(day_date, datetime.min.time())
@@ -78,9 +78,6 @@ def get_nutrition_summary(user_id: int, db: Session = Depends(get_db)):
             FoodLog.logged_at <= d_end
         ).all()
         day_cal = sum(l.calories for l in logs)
-        # Mock default data if no logs exist for visual chart demo
-        if day_cal == 0:
-            day_cal = round(target_cal * (0.85 + (i % 3) * 0.1), 0)
 
         weekly_data.append({
             "day": days_map[day_date.weekday()],
@@ -91,10 +88,10 @@ def get_nutrition_summary(user_id: int, db: Session = Depends(get_db)):
 
     # Monthly chart data (4 weeks)
     monthly_data = [
-        {"week": "Tuần 1", "avg_calories": target_cal - 100, "avg_weight": 66.5},
-        {"week": "Tuần 2", "avg_calories": target_cal + 50, "avg_weight": 66.0},
-        {"week": "Tuần 3", "avg_calories": target_cal - 150, "avg_weight": 65.4},
-        {"week": "Tuần 4", "avg_calories": consumed_cal if consumed_cal > 0 else target_cal - 50, "avg_weight": profile.current_weight_kg if profile else 65.0}
+        {"week": "Week 1", "avg_calories": target_cal - 100, "avg_weight": 66.5},
+        {"week": "Week 2", "avg_calories": target_cal + 50, "avg_weight": 66.0},
+        {"week": "Week 3", "avg_calories": target_cal - 150, "avg_weight": 65.4},
+        {"week": "Week 4", "avg_calories": consumed_cal if consumed_cal > 0 else target_cal - 50, "avg_weight": profile.current_weight_kg if profile else 65.0}
     ]
 
     return {
@@ -117,7 +114,8 @@ def get_nutrition_summary(user_id: int, db: Session = Depends(get_db)):
 def delete_food_log(log_id: int, db: Session = Depends(get_db)):
     log = db.query(FoodLog).filter(FoodLog.id == log_id).first()
     if not log:
-        raise HTTPException(status_code=404, detail="Không tìm thấy nhật ký món ăn")
+        raise HTTPException(status_code=404, detail="Food log entry not found")
     db.delete(log)
     db.commit()
-    return {"message": "Đã xóa thành công"}
+    return {"message": "Food log deleted successfully"}
+

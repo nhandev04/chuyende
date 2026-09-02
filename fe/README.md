@@ -1,6 +1,20 @@
-# React + TypeScript + Vite
+# 🥗 HealthLens AI - Frontend Web Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## 🔑 Pre-Seeded Test Credentials
+
+| Role | Email / Username | Password | Access Rights |
+| :--- | :--- | :--- | :--- |
+| **Standard User** | `demouser@uit.edu.vn` | `123456` | Food scanner, Weight tracking, Caloric journal |
+| **System Administrator** | `admin@uit.edu.vn` | `admin123` | System Admin Hub, Ground-truth DB management, AI feedback reports |
+
+---
+
+## Tech Stack
+- **React 19 + TypeScript + Vite**
+- **Tailwind CSS v4**
+- **Clerk Authentication & Stripe Subscription Integration**
+
+
 
 Currently, two official plugins are available:
 

@@ -60,7 +60,7 @@ export const api = {
             this.setStoredUser(user, user.access_token);
             return user;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Đăng nhập thất bại. Kiểm tra email & mật khẩu.";
+            const message = err.response?.data?.detail || "Login failed. Please check your email & password.";
             throw new Error(message);
         }
     },
@@ -72,7 +72,7 @@ export const api = {
             this.setStoredUser(user, user.access_token);
             return user;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Đăng ký thất bại. Email đã được sử dụng.";
+            const message = err.response?.data?.detail || "Registration failed. Email is already in use.";
             throw new Error(message);
         }
     },
@@ -88,7 +88,7 @@ export const api = {
             this.setStoredUser(user, user.access_token);
             return user;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Không thể đồng bộ tài khoản Clerk OAuth với hệ thống.";
+            const message = err.response?.data?.detail || "Failed to sync Clerk OAuth account with system.";
             throw new Error(message);
         }
     },
@@ -108,7 +108,7 @@ export const api = {
             const res = await client.get("/subscription/plans");
             return res.data.plans;
         } catch (err: any) {
-            throw new Error("Không thể tải danh sách gói dịch vụ từ server.");
+            throw new Error("Failed to load subscription plans from server.");
         }
     },
 
@@ -117,7 +117,7 @@ export const api = {
             const res = await client.post("/subscription/create-checkout-session", { plan, user_id: userId });
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Không thể khởi tạo Stripe checkout session.";
+            const message = err.response?.data?.detail || "Failed to initialize Stripe checkout session.";
             throw new Error(message);
         }
     },
@@ -133,7 +133,7 @@ export const api = {
             this.setStoredUser(updated, currentUser?.access_token);
             return updated;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Không thể nâng cấp gói dịch vụ.";
+            const message = err.response?.data?.detail || "Failed to upgrade subscription tier.";
             throw new Error(message);
         }
     },
@@ -143,7 +143,7 @@ export const api = {
             const res = await client.get(`/ai/daily-meal-recommendations/${userId}`);
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "🔒 Tính năng 'Gợi ý bữa ăn hàng ngày' chỉ dành riêng cho bản Pro (50.000đ/tháng).";
+            const message = err.response?.data?.detail || "🔒 'Daily Meal Recommendation' feature is exclusive to Pro tier users.";
             throw new Error(message);
         }
     },
@@ -154,7 +154,7 @@ export const api = {
             const res = await client.get(`/profile/${userId}`);
             return res.data;
         } catch (err: any) {
-            throw new Error("Không thể tải thông tin profile người dùng.");
+            throw new Error("Failed to load user profile information.");
         }
     },
 
@@ -163,7 +163,7 @@ export const api = {
             const res = await client.put(`/profile/${userId}`, profileData);
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Cập nhật hồ sơ thất bại.";
+            const message = err.response?.data?.detail || "Profile update failed.";
             throw new Error(message);
         }
     },
@@ -175,7 +175,7 @@ export const api = {
             });
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || err.message || "Không thể phân tích ảnh toàn thân.";
+            const message = err.response?.data?.detail || err.message || "Failed to analyze full-body photo.";
             throw new Error(message);
         }
     },
@@ -198,7 +198,7 @@ export const api = {
             const res = await client.post(`/food-logs/${userId}`, log);
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Không thể thêm nhật ký món ăn.";
+            const message = err.response?.data?.detail || "Failed to create food log entry.";
             throw new Error(message);
         }
     },
@@ -207,7 +207,7 @@ export const api = {
         try {
             await client.delete(`/food-logs/${logId}`);
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Xóa món ăn thất bại.";
+            const message = err.response?.data?.detail || "Failed to delete food log item.";
             throw new Error(message);
         }
     },
@@ -217,7 +217,7 @@ export const api = {
             const res = await client.get(`/food-logs/${userId}/summary`);
             return res.data;
         } catch (err: any) {
-            throw new Error("Không thể tải thống kê dinh dưỡng.");
+            throw new Error("Failed to load nutrition summary stats.");
         }
     },
 
@@ -236,7 +236,7 @@ export const api = {
             const res = await client.post(`/weight-logs/${userId}`, { weight_kg: weightKg });
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Ghi nhận cân nặng thất bại.";
+            const message = err.response?.data?.detail || "Failed to record weight entry.";
             throw new Error(message);
         }
     },
@@ -249,7 +249,7 @@ export const api = {
             });
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || err.message || "Quét ảnh món ăn thất bại.";
+            const message = err.response?.data?.detail || err.message || "Food photo analysis failed.";
             throw new Error(message);
         }
     },
@@ -259,7 +259,7 @@ export const api = {
             const res = await client.get(`/ai/recommendations/${userId}`);
             return res.data;
         } catch (err: any) {
-            throw new Error("Không thể lấy gợi ý AI.");
+            throw new Error("Failed to load AI recommendations.");
         }
     },
 
@@ -271,7 +271,7 @@ export const api = {
                 user_correction: correction,
             });
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Gửi báo cáo lỗi AI thất bại.";
+            const message = err.response?.data?.detail || "Failed to submit AI error report.";
             throw new Error(message);
         }
     },
@@ -287,7 +287,7 @@ export const api = {
             const res = await client.get("/admin/stats");
             return res.data;
         } catch (err: any) {
-            throw new Error("Không thể tải thống kê Admin.");
+            throw new Error("Failed to load Admin statistics.");
         }
     },
 
@@ -308,4 +308,63 @@ export const api = {
             return [];
         }
     },
+
+    async addGroundTruthFood(foodData: {
+        food_name: string;
+        category: string;
+        calories_per_100g: number;
+        protein_per_100g: number;
+        carbs_per_100g: number;
+        fat_per_100g: number;
+    }): Promise<FoodDatabaseItem> {
+        try {
+            const res = await client.post("/admin/foods", foodData);
+            return res.data;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Failed to add food item to Ground-Truth DB.";
+            throw new Error(message);
+        }
+    },
+
+    async deleteGroundTruthFood(foodId: number): Promise<void> {
+        try {
+            await client.delete(`/admin/foods/${foodId}`);
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Failed to delete food item from DB.";
+            throw new Error(message);
+        }
+    },
+
+    async updateAIReport(reportId: number, status: 'resolved' | 'dismissed', addToGroundTruth: boolean = false): Promise<AIReportItem> {
+        try {
+            const res = await client.put(`/admin/reports/${reportId}`, {
+                status,
+                add_to_ground_truth: addToGroundTruth
+            });
+            return res.data;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Failed to update AI report status.";
+            throw new Error(message);
+        }
+    },
+
+    async getAllUsers(): Promise<any[]> {
+        try {
+            const res = await client.get("/admin/users");
+            return res.data;
+        } catch {
+            return [];
+        }
+    },
+
+    async updateUserAccount(userId: number, role?: string, plan?: string): Promise<any> {
+        try {
+            const res = await client.put(`/admin/users/${userId}`, { role, plan });
+            return res.data;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Failed to update user account settings.";
+            throw new Error(message);
+        }
+    }
 };
+

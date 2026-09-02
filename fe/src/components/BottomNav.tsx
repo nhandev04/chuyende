@@ -33,7 +33,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}
         >
           <Home className="w-5 h-5" />
-          <span className="text-[10px]">Trang Chủ</span>
+          <span className="text-[10px]">Home</span>
         </button>
 
         {/* History Tab */}
@@ -46,7 +46,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}
         >
           <BarChart3 className="w-5 h-5" />
-          <span className="text-[10px]">Tiến Trình</span>
+          <span className="text-[10px]">Progress</span>
         </button>
 
         {/* Main Action floating Camera Button */}
@@ -72,7 +72,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}
         >
           <UserIcon className="w-5 h-5" />
-          <span className="text-[10px]">Hồ Sơ</span>
+          <span className="text-[10px]">Profile</span>
         </button>
 
         {/* Admin Tab if role is admin */}
@@ -89,6 +89,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <span className="text-[10px]">Admin</span>
           </button>
         )}
+
       </div>
     </nav>
   );

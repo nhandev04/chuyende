@@ -78,7 +78,7 @@ def clerk_sync(payload: ClerkSyncRequest, db: Session = Depends(get_db)):
 def register(user_in: UserRegister, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Email này đã được đăng ký trên hệ thống")
+        raise HTTPException(status_code=400, detail="This email is already registered on the system")
 
     hashed_pw = hash_password(user_in.password)
     user_role = "admin" if "admin" in user_in.email.lower() else "user"
@@ -130,7 +130,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
 def login(user_in: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_in.email).first()
     if not user or not user.hashed_password or not verify_password(user_in.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Email hoặc mật khẩu không chính xác")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token = create_access_token({"sub": str(user.id), "email": user.email})
     return {
@@ -147,18 +147,19 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
 @router.get("/me")
 def get_current_user(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)):
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Chưa đăng nhập")
+        raise HTTPException(status_code=401, detail="Unauthorized / Not logged in")
 
     token = authorization.split(" ")[1]
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
     except (JWTError, ValueError):
-        raise HTTPException(status_code=401, detail="Token không hợp lệ hoặc đã hết hạn")
+        raise HTTPException(status_code=401, detail="Invalid or expired authentication token")
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+        raise HTTPException(status_code=404, detail="User not found")
+
 
     return {
         "user_id": user.id,

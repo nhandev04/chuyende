@@ -72,16 +72,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-3xl flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/20">
           <Sparkles className="w-10 h-10 text-slate-950" />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 dark:text-white">Chào Mừng Tới HealthLens AI</h2>
+        <h2 className="text-3xl font-black text-slate-900 dark:text-white">Welcome to HealthLens AI</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-          Nền tảng ứng dụng trí tuệ nhân tạo nhận diện món ăn, định lượng Calorie và gợi ý thực đơn sinh học theo vóc dáng cá nhân.
+          AI-driven platform for automated food computer vision, calorie tracking, and biometrically tailored diet recommendations.
         </p>
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             onClick={onOpenAuth}
             className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm rounded-2xl shadow-lg hover:opacity-95 transition"
           >
-            🔑 Đăng Nhập / Đăng Ký Trải Nghiệm Ngay
+            🔑 Sign In / Register to Start
           </button>
         </div>
       </div>
@@ -114,16 +114,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }`}>
         <div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Hệ Thống Theo Dõi Sức Khỏe AI</span>
+            <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">AI Health Tracking System</span>
             <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase ${
               user?.role === 'admin' ? 'bg-amber-500/20 text-amber-400' : user?.plan === 'pro' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : user?.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-300'
             }`}>
-              Gói: {user?.role === 'admin' ? 'ADMIN' : user?.plan || 'STANDARD'}
+              Tier: {user?.role === 'admin' ? 'ADMIN' : user?.plan || 'STANDARD'}
             </span>
           </div>
-          <h2 className="text-xl font-black mt-1">Xin chào, {user?.full_name || 'Bạn'} 👋</h2>
+          <h2 className="text-xl font-black mt-1">Welcome back, {user?.full_name || 'User'} 👋</h2>
           <p className={`text-xs mt-0.5 ${textSub}`}>
-            Mục tiêu: {profile?.goal === 'weight_loss' ? 'Giảm Cân / Siết Mỡ' : profile?.goal === 'muscle_gain' ? 'Tăng Cơ / Tăng Cân' : 'Duy Trì Vóc Dáng'}
+            Goal: {profile?.goal === 'weight_loss' ? 'Weight Loss / Cut' : profile?.goal === 'muscle_gain' ? 'Muscle Gain / Bulk' : 'Maintain Fitness'}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -131,14 +131,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             onClick={onOpenOnboarding}
             className="hidden sm:flex bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 font-semibold transition"
           >
-            Khảo Sát
+            Physical Setup
           </button>
           <button
             onClick={onOpenSubscription}
             className="bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow-md transition flex items-center gap-1.5"
           >
             <Crown className="w-3.5 h-3.5 fill-slate-950" />
-            <span>Nâng Cấp Gói</span>
+            <span>Upgrade Tier</span>
           </button>
         </div>
       </div>
@@ -153,7 +153,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
               <div>
                 <h3 className="font-extrabold text-sm text-indigo-300">{proMealPlan.title}</h3>
-                <p className="text-[11px] text-slate-400">Thiết kế chuẩn TDEE ({proMealPlan.target_daily_calories} kcal) & Khuyên BMI</p>
+                <p className="text-[11px] text-slate-400">TDEE Tailored ({proMealPlan.target_daily_calories} kcal) & BMI Biometrics</p>
               </div>
             </div>
             <span className="text-xs font-bold text-indigo-400 bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 rounded-full">
@@ -187,10 +187,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div>
               <h3 className="font-extrabold text-sm text-indigo-200 flex items-center gap-1.5">
                 <Crown className="w-4 h-4 text-amber-400 fill-amber-400" />
-                Gợi Ý Bữa Ăn AI Hàng Ngày (Đặc Quyền Gói Pro)
+                Daily AI Recommended Meal Plan (Pro Tier Exclusive)
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Nâng cấp bản Pro (50.000đ/tháng) để nhận thực đơn thiết kế riêng cho Sáng, Trưa, Tối, Phụ chuẩn TDEE & Body Shape.
+                Upgrade to Pro tier (~$2/mo) to unlock custom meal plans for Breakfast, Lunch, Dinner, & Snack tailored to your TDEE & Body Shape.
               </p>
             </div>
           </div>
@@ -198,7 +198,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             onClick={onOpenSubscription}
             className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg shrink-0 transition"
           >
-            Mở Khóa Bản Pro (50k)
+            Unlock Pro Tier
           </button>
         </div>
       )}
@@ -211,14 +211,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Flame className="w-5 h-5 text-amber-500" />
-            <h3 className={`font-bold text-sm ${textMain}`}>Tiêu Thụ Calorie Hôm Nay</h3>
+            <h3 className={`font-bold text-sm ${textMain}`}>Today's Caloric Intake</h3>
           </div>
           <button
             onClick={onOpenScanner}
             className="bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 px-3.5 py-1.5 rounded-xl font-extrabold text-xs shadow-md shadow-emerald-500/20 flex items-center space-x-1 hover:scale-105 transition-all"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Thêm Bữa Ăn</span>
+            <span>Add Meal</span>
           </button>
         </div>
 
@@ -257,7 +257,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span className={`text-2xl font-black ${textMain}`}>{consumed}</span>
                 <span className={`text-[10px] font-medium ${textSub}`}>/ {target} kcal</span>
                 <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full mt-0.5">
-                  {pct}% Mục Tiêu
+                  {pct}% Goal
                 </span>
               </div>
             </div>
@@ -268,7 +268,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {/* Protein Bar */}
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
-                <span className="text-sky-500">Đạm (Protein)</span>
+                <span className="text-sky-500">Protein</span>
                 <span className={textSub}>{summary?.daily.protein_g || 0}g / {summary?.daily.protein_target_g || 120}g</span>
               </div>
               <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
@@ -282,7 +282,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {/* Carbs Bar */}
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
-                <span className="text-amber-500">Đường Bột (Carbs)</span>
+                <span className="text-amber-500">Carbs</span>
                 <span className={textSub}>{summary?.daily.carbs_g || 0}g / {summary?.daily.carbs_target_g || 200}g</span>
               </div>
               <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
@@ -296,7 +296,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {/* Fat Bar */}
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
-                <span className="text-rose-500">Chất Béo (Fat)</span>
+                <span className="text-rose-500">Fat</span>
                 <span className={textSub}>{summary?.daily.fat_g || 0}g / {summary?.daily.fat_target_g || 50}g</span>
               </div>
               <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
@@ -319,7 +319,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
-            <h3 className="font-extrabold text-sm text-emerald-500">Gợi Ý Thực Đơn Tự Động Từ AI</h3>
+            <h3 className="font-extrabold text-sm text-emerald-500">Automated AI Diet Recommendation</h3>
           </div>
           <p className={`text-xs leading-relaxed mb-3 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{recommendation.advice}</p>
 
@@ -348,40 +348,40 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Health & Body Stats Widget */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className={`border p-4 rounded-2xl text-center ${cardBg}`}>
-          <span className={`text-[10px] font-semibold block ${textSub}`}>CÂN NẶNG HÔM NAY</span>
+          <span className={`text-[10px] font-semibold block ${textSub}`}>TODAY'S WEIGHT</span>
           <span className="text-xl font-extrabold text-emerald-500 block mt-1">{profile?.current_weight_kg || 65} <span className="text-xs font-normal">kg</span></span>
-          <button onClick={onOpenWeightModal} className="text-[10px] text-emerald-500 hover:underline mt-1 font-semibold">Cập nhật →</button>
+          <button onClick={onOpenWeightModal} className="text-[10px] text-emerald-500 hover:underline mt-1 font-semibold">Update →</button>
         </div>
 
         <div className={`border p-4 rounded-2xl text-center ${cardBg}`}>
-          <span className={`text-[10px] font-semibold block ${textSub}`}>MỤC TIÊU</span>
+          <span className={`text-[10px] font-semibold block ${textSub}`}>TARGET WEIGHT</span>
           <span className="text-xl font-extrabold text-teal-500 block mt-1">{profile?.target_weight_kg || 60} <span className="text-xs font-normal">kg</span></span>
-          <span className={`text-[10px] block mt-1 ${textSub}`}>Dự kiến 4 tuần</span>
+          <span className={`text-[10px] block mt-1 ${textSub}`}>4-week projection</span>
         </div>
 
         <div className={`border p-4 rounded-2xl text-center ${cardBg}`}>
-          <span className={`text-[10px] font-semibold block ${textSub}`}>CHỈ SỐ BMI</span>
+          <span className={`text-[10px] font-semibold block ${textSub}`}>BMI INDEX</span>
           <span className="text-xl font-extrabold text-sky-500 block mt-1">{profile?.bmi || 22.5}</span>
-          <span className="text-[10px] text-emerald-500 block mt-1 font-bold">Bình Thường</span>
+          <span className="text-[10px] text-emerald-500 block mt-1 font-bold">Normal</span>
         </div>
 
         <div className={`border p-4 rounded-2xl text-center ${cardBg}`}>
-          <span className={`text-[10px] font-semibold block ${textSub}`}>NĂNG LƯỢNG TDEE</span>
+          <span className={`text-[10px] font-semibold block ${textSub}`}>TDEE ENERGY</span>
           <span className="text-xl font-extrabold text-amber-500 block mt-1">{profile?.tdee || 2200} <span className="text-xs font-normal">kcal</span></span>
-          <span className={`text-[10px] block mt-1 ${textSub}`}>Mức duy trì</span>
+          <span className={`text-[10px] block mt-1 ${textSub}`}>Maintenance Level</span>
         </div>
       </div>
 
       {/* Today's Meals Timeline */}
       <div className={`border rounded-3xl p-5 shadow-xl ${cardBg}`}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className={`font-extrabold text-sm ${textMain}`}>Nhật Ký Bữa Ăn Trong Ngày</h3>
-          <span className={`text-xs ${textSub}`}>{todayLogs.length} món đã ghi nhận</span>
+          <h3 className={`font-extrabold text-sm ${textMain}`}>Daily Meal Journal</h3>
+          <span className={`text-xs ${textSub}`}>{todayLogs.length} items recorded</span>
         </div>
 
         {todayLogs.length === 0 ? (
           <div className={`text-center py-8 text-xs ${textSub}`}>
-            Chưa có bữa ăn nào được ghi nhận hôm nay. Bấm nút Quét / Thêm Bữa Ăn để khởi tạo!
+            No meals recorded for today. Tap Add Meal to scan or log your food!
           </div>
         ) : (
           <div className="space-y-3">
@@ -423,4 +423,5 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
     </div>
   );
+
 };

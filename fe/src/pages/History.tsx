@@ -43,8 +43,8 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
   if (!userId) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
-        <h3 className="text-xl font-bold">Lịch Sử Theo Dõi Sức Khỏe</h3>
-        <p className="text-sm text-slate-400">Vui lòng đăng nhập để xem lịch sử nạp calo và biến động cân nặng cá nhân.</p>
+        <h3 className="text-xl font-bold">Health Tracking History</h3>
+        <p className="text-sm text-slate-400">Please sign in to view your caloric intake and body weight progression charts.</p>
       </div>
     );
   }
@@ -56,8 +56,8 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className={`text-xl font-black ${textMain}`}>Lịch Sử & Tiến Trình Health AI</h2>
-          <p className={`text-xs ${textSub}`}>Phân tích xu hướng tiêu thụ calo và biến động cân nặng</p>
+          <h2 className={`text-xl font-black ${textMain}`}>History & AI Progress Analytics</h2>
+          <p className={`text-xs ${textSub}`}>Caloric intake trends & weight fluctuation analysis</p>
         </div>
 
         {/* Time Period Tabs */}
@@ -74,7 +74,7 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
                   : textSub
               }`}
             >
-              {period === 'daily' ? 'Hàng Ngày' : period === 'weekly' ? 'Hàng Tuần' : 'Hàng Tháng'}
+              {period === 'daily' ? 'Daily' : period === 'weekly' ? 'Weekly' : 'Monthly'}
             </button>
           ))}
         </div>
@@ -86,11 +86,11 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
           <div className="flex items-center space-x-2">
             <BarChart2 className="w-5 h-5 text-emerald-500" />
             <h3 className={`font-extrabold text-sm ${textMain}`}>
-              {filterPeriod === 'weekly' ? 'Biểu Đồ Lượng Calorie 7 Ngày Gần Nhất' : filterPeriod === 'monthly' ? 'Biểu Đồ Xu Hướng Theo Tuần' : 'Biểu Đồ Chi Tiết Hàng Ngày'}
+              {filterPeriod === 'weekly' ? '7-Day Caloric Intake Chart' : filterPeriod === 'monthly' ? 'Weekly Average Caloric Trend' : 'Detailed Daily Chart'}
             </h3>
           </div>
           <span className="text-[11px] font-semibold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full">
-            Mục tiêu: {summary?.daily.target_calories || 1950} kcal/ngày
+            Target: {summary?.daily.target_calories || 1950} kcal/day
           </span>
         </div>
 
@@ -137,7 +137,7 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
       <div className={`border rounded-3xl p-5 shadow-2xl space-y-4 ${cardBg}`}>
         <div className="flex items-center space-x-2">
           <Scale className="w-5 h-5 text-teal-500" />
-          <h3 className={`font-extrabold text-sm ${textMain}`}>Tiến Trình Thay Đổi Cân Nặng (kg)</h3>
+          <h3 className={`font-extrabold text-sm ${textMain}`}>Body Weight Progression (kg)</h3>
         </div>
 
         <div className="h-56 w-full">
@@ -162,13 +162,13 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
 
       {/* Weight Log Entries */}
       <div className={`border rounded-3xl p-5 shadow-xl ${cardBg}`}>
-        <h3 className={`font-extrabold text-sm mb-3 ${textMain}`}>Nhật Ký Cân Nặng</h3>
+        <h3 className={`font-extrabold text-sm mb-3 ${textMain}`}>Weight Log Records</h3>
         <div className="space-y-2">
           {weightLogs.map((log) => (
             <div key={log.id} className={`p-3 rounded-2xl border flex items-center justify-between text-xs ${
               isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
             }`}>
-              <span className={textSub}>{new Date(log.recorded_at).toLocaleDateString('vi-VN')}</span>
+              <span className={textSub}>{new Date(log.recorded_at).toLocaleDateString('en-US')}</span>
               <span className="font-bold text-emerald-500 text-sm">{log.weight_kg} kg</span>
             </div>
           ))}
@@ -177,4 +177,5 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
 
     </div>
   );
+
 };
