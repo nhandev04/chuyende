@@ -53,10 +53,31 @@ def delete_food_from_db(food_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Successfully deleted food item #{food_id} ({item.food_name})"}
 
+from app.db.models import FoodDatabase, AIReport, User, UserProfile, FoodLog
+
 # --- AI Feedback Reports Management ---
 @router.get("/reports")
 def get_ai_reports(db: Session = Depends(get_db)):
-    return db.query(AIReport).order_by(AIReport.created_at.desc()).all()
+    reports = db.query(AIReport).order_by(AIReport.created_at.desc()).all()
+    result = []
+    for r in reports:
+        image_url = None
+        if r.food_log_id:
+            flog = db.query(FoodLog).filter(FoodLog.id == r.food_log_id).first()
+            if flog:
+                image_url = flog.image_url
+        result.append({
+            "id": r.id,
+            "user_id": r.user_id,
+            "food_log_id": r.food_log_id,
+            "original_prediction": r.original_prediction,
+            "user_correction": r.user_correction,
+            "status": r.status,
+            "created_at": r.created_at,
+            "image_url": image_url
+        })
+    return result
+
 
 @router.put("/reports/{report_id}")
 def update_ai_report(report_id: int, payload: AIReportUpdate, db: Session = Depends(get_db)):

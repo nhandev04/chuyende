@@ -1,7 +1,7 @@
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.db.database import engine, Base
+from app.db.database import engine, Base, ensure_database_schema_migrated
 from app.db.seed import seed_initial_db
 from app.api import auth, profile, food_logs, weight_logs, ai, admin, subscription
 
@@ -10,9 +10,11 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
-# Create tables automatically & seed initial database
+# Create tables automatically, migrate schema & seed initial database
 Base.metadata.create_all(bind=engine)
+ensure_database_schema_migrated()
 seed_initial_db()
+
 
 
 app = FastAPI(

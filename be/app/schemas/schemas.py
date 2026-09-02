@@ -26,6 +26,7 @@ class TokenResponse(BaseModel):
     role: str
     plan: str = "standard"
     auth_provider: str = "local"
+    avatar_url: Optional[str] = None
 
 # Subscription Schemas
 class CheckoutSessionRequest(BaseModel):
@@ -60,6 +61,7 @@ class UserProfileUpdate(BaseModel):
     goal: Optional[str] = None
     daily_calorie_target: Optional[float] = None
     dietary_preferences: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class UserProfileOut(BaseModel):
     id: int
@@ -76,6 +78,8 @@ class UserProfileOut(BaseModel):
     tdee: float
     body_shape: str
     dietary_preferences: Optional[str] = None
+    avatar_url: Optional[str] = None
+
 
     class Config:
         from_attributes = True
@@ -132,6 +136,7 @@ class AIAnalysisResult(BaseModel):
     confidence_score: float
     detected_items: List[str]
     advice: Optional[str] = None
+    image_url: Optional[str] = None
 
 class BodyAnalysisResult(BaseModel):
     body_shape: str # Skinny, Fat, Muscular, Fit, Average
@@ -143,6 +148,8 @@ class BodyAnalysisResult(BaseModel):
     weight_kg: Optional[float] = None
     bmi_level: Optional[int] = None
     bmi_level_label: Optional[str] = None
+    image_url: Optional[str] = None
+
 
 class AIReportCreate(BaseModel):
     food_log_id: Optional[int] = None

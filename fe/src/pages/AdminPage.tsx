@@ -339,14 +339,28 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
               <div key={report.id} className={`p-4 rounded-2xl border flex items-center justify-between text-xs ${
                 isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
               }`}>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-bold text-rose-500">AI Predicted: "{report.original_prediction}"</span>
-                    <span className={textSub}>→</span>
-                    <span className="font-bold text-emerald-500">Actual: "{report.user_correction}"</span>
+                <div className="flex items-center space-x-3">
+                  {report.image_url ? (
+                    <img
+                      src={report.image_url}
+                      alt="Uploaded food"
+                      className="w-12 h-12 rounded-xl object-cover border border-slate-700 shadow"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 text-[10px] font-bold">
+                      No Img
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-rose-500">AI Predicted: "{report.original_prediction}"</span>
+                      <span className={textSub}>→</span>
+                      <span className="font-bold text-emerald-500">Actual: "{report.user_correction}"</span>
+                    </div>
+                    <p className={`text-[11px] mt-1 ${textSub}`}>User ID: #{report.user_id} • Time: {new Date(report.created_at).toLocaleDateString('vi-VN')}</p>
                   </div>
-                  <p className={`text-[11px] mt-1 ${textSub}`}>User ID: #{report.user_id} • Time: {new Date(report.created_at).toLocaleDateString('en-US')}</p>
                 </div>
+
 
                 <div className="flex items-center space-x-2">
                   <span className={`font-bold px-2.5 py-1 rounded-full text-[10px] ${

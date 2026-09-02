@@ -121,7 +121,8 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
             protein_g: editProtein,
             carbs_g: editCarbs,
             fat_g: editFat,
-            image_url: imagePreview || undefined,
+            image_url: result.image_url || imagePreview || undefined,
+
         });
         onFoodLogged();
         onClose();

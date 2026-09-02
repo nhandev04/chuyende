@@ -7,7 +7,9 @@ export interface User {
   auth_provider?: 'clerk' | 'local';
   clerk_user_id?: string;
   access_token?: string;
+  avatar_url?: string;
 }
+
 
 export interface SubscriptionPlan {
   id: 'standard' | 'plus' | 'pro';
@@ -71,7 +73,9 @@ export interface UserProfile {
   tdee: number;
   body_shape: string;
   dietary_preferences?: string;
+  avatar_url?: string;
 }
+
 
 export interface FoodLog {
   id: number;
@@ -105,6 +109,7 @@ export interface AIAnalysisResult {
   confidence_score: number;
   detected_items: string[];
   advice?: string;
+  image_url?: string;
 }
 
 export interface BodyAnalysisResult {
@@ -117,7 +122,9 @@ export interface BodyAnalysisResult {
   weight_kg?: number;
   bmi_level?: number;
   bmi_level_label?: string;
+  image_url?: string;
 }
+
 
 export interface NutritionSummary {
   daily: {
@@ -174,4 +181,6 @@ export interface AIReportItem {
   user_correction: string;
   status: string;
   created_at: string;
+  image_url?: string;
 }
+

@@ -184,7 +184,27 @@ export const api = {
     },
 
     // Profile APIs
+    async uploadAvatar(userId: number, file: File): Promise<{ avatar_url: string }> {
+        try {
+            const formData = new FormData();
+            formData.append("avatar_file", file);
+            const res = await client.post(`/profile/upload-avatar/${userId}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+            const currentUser = this.getStoredUser();
+            if (currentUser) {
+                const updatedUser = { ...currentUser, avatar_url: res.data.avatar_url };
+                this.setStoredUser(updatedUser, currentUser.access_token);
+            }
+            return res.data;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Failed to upload avatar image.";
+            throw new Error(message);
+        }
+    },
+
     async getProfile(userId: number): Promise<UserProfile> {
+
         try {
             const res = await client.get(`/profile/${userId}`);
             return res.data;

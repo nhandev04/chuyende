@@ -60,6 +60,12 @@ def analyze_food(
                 detail="❌ Unable to recognize food in image. Please provide a clearer photo or enter food name."
             )
         
+        cloudinary_url = None
+        if temp_path:
+            from app.services.cloudinary_service import upload_image_to_cloudinary
+            cloudinary_url = upload_image_to_cloudinary(temp_path, folder="health_lens_ai/food_scans")
+
+
         return AIAnalysisResult(
             food_name=res["food_name"],
             estimated_weight_g=res["estimated_weight_g"],
@@ -69,8 +75,10 @@ def analyze_food(
             fat_g=res["fat_g"],
             confidence_score=res["confidence_score"],
             detected_items=res["detected_items"],
-            advice=res.get("advice")
+            advice=res.get("advice"),
+            image_url=cloudinary_url
         )
+
     finally:
         # Clean up temporary uploaded image file safely
         if temp_path and os.path.exists(temp_path):

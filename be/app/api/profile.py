@@ -19,6 +19,48 @@ router = APIRouter(prefix="/api/v1/profile", tags=["Profile"])
 TEMP_BODY_DIR = "temp_body_uploads"
 os.makedirs(TEMP_BODY_DIR, exist_ok=True)
 
+@router.post("/upload-avatar/{user_id}")
+def upload_avatar(
+    user_id: int,
+    avatar_file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    temp_path = os.path.join(TEMP_BODY_DIR, f"avatar_{user_id}_{avatar_file.filename}")
+    try:
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(avatar_file.file, buffer)
+
+        from app.services.cloudinary_service import upload_image_to_cloudinary
+        cloudinary_url = upload_image_to_cloudinary(temp_path, folder="health_lens_ai/avatars")
+
+        if not cloudinary_url:
+            cloudinary_url = f"/temp_body_uploads/avatar_{user_id}_{avatar_file.filename}"
+
+        user.avatar_url = cloudinary_url
+        profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+        if profile:
+            profile.avatar_url = cloudinary_url
+
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "message": "🎉 Avatar uploaded and updated successfully!",
+            "avatar_url": user.avatar_url,
+            "user_id": user.id
+        }
+    finally:
+        if temp_path and os.path.exists(temp_path) and "temp_body_uploads" not in (user.avatar_url or ""):
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+
+
 @router.get("/{user_id}", response_model=UserProfileOut)
 def get_profile(user_id: int, db: Session = Depends(get_db)):
     expire_outdated_subscriptions(db)
@@ -153,6 +195,12 @@ def analyze_body_pose(
     try:
         result = compute_body_metrics(pred_height, pred_weight, age, gender, goal)
         pose_note = f"\n[YOLO Pose Model: {model_info}, Confidence: {confidence}]" if confidence > 0 else ""
+        cloudinary_url = None
+        if temp_path:
+            from app.services.cloudinary_service import upload_image_to_cloudinary
+            cloudinary_url = upload_image_to_cloudinary(temp_path, folder="health_lens_ai/body_scans")
+
+
 
         return BodyAnalysisResult(
             body_shape=result["body_shape"],
@@ -163,8 +211,10 @@ def analyze_body_pose(
             height_cm=pred_height,
             weight_kg=pred_weight,
             bmi_level=result["bmi_level"],
-            bmi_level_label=result["bmi_level_label"]
+            bmi_level_label=result["bmi_level_label"],
+            image_url=cloudinary_url
         )
+
     finally:
         if temp_path and os.path.exists(temp_path):
             try:

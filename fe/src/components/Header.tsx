@@ -111,11 +111,20 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
                 }`}
               >
-                <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold">
-                  {user.full_name ? user.full_name[0].toUpperCase() : 'U'}
-                </div>
+                {user.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.full_name || "Avatar"}
+                    className="w-6 h-6 rounded-full object-cover border border-emerald-500 shadow-sm"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs">
+                    {user.full_name ? user.full_name[0].toUpperCase() : 'U'}
+                  </div>
+                )}
                 <span className="max-w-[100px] truncate">{user.full_name || 'Profile'}</span>
               </button>
+
 
               <button
                 onClick={onLogout}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { api } from '../services/api';
 import type { User, UserProfile, SubscriptionStatusOut } from '../types';
-import { Save, LogOut, CheckCircle2, Sliders, Crown, Calendar, Zap, ShieldCheck } from 'lucide-react';
+import { Save, LogOut, CheckCircle2, Sliders, Crown, Calendar, Zap, ShieldCheck, Camera } from 'lucide-react';
 
 interface ProfilePageProps {
   user: User | null;
@@ -32,11 +32,38 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [subStatus, setSubStatus] = useState<SubscriptionStatusOut | null>(null);
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatar_url || profile?.avatar_url || null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  useEffect(() => {
+    if (user?.avatar_url) {
+      setAvatarUrl(user.avatar_url);
+    }
+  }, [user]);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !user?.user_id) return;
+    const file = e.target.files[0];
+    setUploadingAvatar(true);
+    try {
+      const res = await api.uploadAvatar(user.user_id, file);
+      setAvatarUrl(res.avatar_url);
+      if (user) {
+        user.avatar_url = res.avatar_url;
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to upload avatar");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   useEffect(() => {
     if (user?.user_id) {
       api.getSubscriptionStatus(user.user_id).then(setSubStatus).catch(() => null);
     }
   }, [user]);
+
 
   useEffect(() => {
     if (profile) {
@@ -92,9 +119,38 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       
       {/* Header Profile Summary */}
       <div className={`border rounded-3xl p-6 shadow-2xl text-center relative overflow-hidden ${cardBg}`}>
-        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 font-black text-3xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/20">
-          {user?.full_name ? user.full_name[0].toUpperCase() : 'U'}
+        <div className="relative w-24 h-24 mx-auto mb-3 group">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={user?.full_name || "Avatar"}
+              className="w-24 h-24 rounded-full object-cover border-2 border-emerald-500 shadow-xl shadow-emerald-500/20"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 font-black text-4xl flex items-center justify-center shadow-lg shadow-emerald-500/20 border-2 border-emerald-400">
+              {user?.full_name ? user.full_name[0].toUpperCase() : 'U'}
+            </div>
+          )}
+
+          {/* Camera Upload Button Overlay */}
+          <label
+            title="Upload profile picture"
+            className="absolute bottom-0 right-0 bg-slate-900 border border-slate-700 p-2 rounded-full cursor-pointer text-emerald-400 hover:text-white hover:bg-emerald-600 transition shadow-lg group-hover:scale-110"
+          >
+            <Camera className="w-4 h-4" />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              disabled={uploadingAvatar}
+              className="hidden"
+            />
+          </label>
         </div>
+        {uploadingAvatar && (
+          <p className="text-[11px] text-emerald-400 animate-pulse font-bold mb-2">Uploading avatar to Cloudinary...</p>
+        )}
+
         <h2 className={`text-xl font-black ${textMain}`}>{user?.full_name || 'Health AI User'}</h2>
         <p className={`text-xs mt-0.5 ${textSub}`}>{user?.email}</p>
         <span className={`inline-block text-[10px] font-bold px-3 py-1 rounded-full mt-2 border ${

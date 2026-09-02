@@ -10,9 +10,30 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+def ensure_database_schema_migrated():
+    from sqlalchemy import text
+    try:
+        with engine.connect() as conn:
+            # Migration for users table
+            res = conn.execute(text("PRAGMA table_info(users)")).fetchall()
+            user_cols = [r[1] for r in res]
+            if "avatar_url" not in user_cols:
+                conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url TEXT"))
+                conn.commit()
+
+            # Migration for user_profiles table
+            res_p = conn.execute(text("PRAGMA table_info(user_profiles)")).fetchall()
+            profile_cols = [r[1] for r in res_p]
+            if "avatar_url" not in profile_cols:
+                conn.execute(text("ALTER TABLE user_profiles ADD COLUMN avatar_url TEXT"))
+                conn.commit()
+    except Exception as e:
+        print(f"Migration check error: {e}")
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+

@@ -18,6 +18,7 @@ class User(Base):
     stripe_subscription_id = Column(String, nullable=True)
     subscription_expires_at = Column(DateTime, nullable=True)
     subscription_status = Column(String, default="active") # "active", "canceled", "none"
+    avatar_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     profile = relationship("UserProfile", back_populates="user", uselist=False)
@@ -42,8 +43,10 @@ class UserProfile(Base):
     tdee = Column(Float, default=2200.0)
     body_shape = Column(String, default="Average") # Skinny, Fat, Muscular, Fit, Average
     dietary_preferences = Column(String, nullable=True) # e.g. "Dị ứng hải sản, Ngân sách 100k/ngày"
+    avatar_url = Column(String, nullable=True)
 
     user = relationship("User", back_populates="profile")
+
 
 class FoodLog(Base):
     __tablename__ = "food_logs"
