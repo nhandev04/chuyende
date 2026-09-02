@@ -16,6 +16,8 @@ import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 
 import { SubscriptionModal } from './components/SubscriptionModal';
+import { RAGMealPlanModal } from './components/RAGMealPlanModal';
+
 
 function useClerkSafe() {
   try {
@@ -92,6 +94,8 @@ export function App() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
   const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
+  const [isRAGModalOpen, setIsRAGModalOpen] = useState(false);
+
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -213,7 +217,9 @@ export function App() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenProfile={() => navigateTab('profile')}
         onOpenSubscription={() => setIsSubscriptionOpen(true)}
+        onOpenRAGMealPlan={() => setIsRAGModalOpen(true)}
         onToggleAdmin={handleToggleAdmin}
+
         isAdminView={activeTab === 'admin'}
         onLogout={handleLogout}
         theme={theme}
@@ -320,6 +326,21 @@ export function App() {
           setRefreshKey(prev => prev + 1);
         }}
       />
+
+      {isRAGModalOpen && (
+
+        <RAGMealPlanModal
+          user={user}
+          onClose={() => setIsRAGModalOpen(false)}
+          onOpenSubscription={() => {
+            setIsRAGModalOpen(false);
+            setIsSubscriptionOpen(true);
+          }}
+          onFoodLogged={handleFoodLogged}
+          theme={theme}
+        />
+      )}
+
 
     </div>
   );

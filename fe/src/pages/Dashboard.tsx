@@ -11,6 +11,7 @@ interface DashboardProps {
   onOpenWeightModal: () => void;
   onOpenOnboarding: () => void;
   onOpenSubscription: () => void;
+  onOpenRAGMealPlan?: () => void;
   theme?: 'dark' | 'light';
   refreshKey?: number;
 }
@@ -23,9 +24,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenWeightModal,
   onOpenOnboarding,
   onOpenSubscription,
+  onOpenRAGMealPlan,
   theme = 'dark',
   refreshKey = 0
 }) => {
+
   const [summary, setSummary] = useState<NutritionSummary | null>(null);
   const [todayLogs, setTodayLogs] = useState<FoodLog[]>([]);
   const [recommendation, setRecommendation] = useState<AIRecommendation | null>(null);
@@ -156,10 +159,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <p className="text-[11px] text-slate-400">TDEE Tailored ({proMealPlan.target_daily_calories} kcal) & BMI Biometrics</p>
               </div>
             </div>
-            <span className="text-xs font-bold text-indigo-400 bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 rounded-full">
-              PRO ACCESS
-            </span>
+            {onOpenRAGMealPlan && (
+              <button
+                onClick={onOpenRAGMealPlan}
+                className="text-xs font-bold text-amber-400 bg-amber-500/20 hover:bg-amber-500 hover:text-slate-950 border border-amber-500/40 px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1 shadow-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Open RAG AI Planner →</span>
+              </button>
+            )}
           </div>
+
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             {proMealPlan.meals.map((m, idx) => (

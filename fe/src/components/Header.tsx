@@ -8,6 +8,7 @@ interface HeaderProps {
   onOpenAuth: () => void;
   onOpenProfile: () => void;
   onOpenSubscription: () => void;
+  onOpenRAGMealPlan?: () => void;
   onToggleAdmin: () => void;
   isAdminView: boolean;
   onLogout: () => void;
@@ -20,12 +21,14 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
   onOpenProfile,
   onOpenSubscription,
+  onOpenRAGMealPlan,
   onToggleAdmin,
   isAdminView,
   onLogout,
   theme,
   onToggleTheme
 }) => {
+
   const isDark = theme === 'dark';
   const planName = user?.role === 'admin' ? 'ADMIN' : (user?.plan || 'STANDARD').toUpperCase();
 
@@ -80,10 +83,27 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 <span>{planName}</span>
+
                 {user.plan !== 'pro' && user.role !== 'admin' && (
                   <span className="text-[9px] bg-amber-400 text-slate-950 px-1 rounded font-bold">Upgrade</span>
                 )}
               </button>
+
+
+
+              {/* RAG AI Smart Meal Plan Button */}
+
+              {onOpenRAGMealPlan && (
+                <button
+                  onClick={onOpenRAGMealPlan}
+                  title="Open RAG AI Smart Meal Planner"
+                  className="px-2.5 py-1 rounded-full text-[11px] font-extrabold flex items-center gap-1 border bg-gradient-to-r from-teal-500/20 to-emerald-500/20 border-emerald-500/50 text-emerald-400 hover:scale-105 transition shadow-sm"
+                >
+                  <Sparkles className="w-3 h-3 text-emerald-400" />
+                  <span className="hidden sm:inline">RAG Meal AI</span>
+                </button>
+              )}
+
 
               {/* Admin Toggle */}
               {user.role === 'admin' && (

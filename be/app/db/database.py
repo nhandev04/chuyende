@@ -27,8 +27,12 @@ def ensure_database_schema_migrated():
             if "avatar_url" not in profile_cols:
                 conn.execute(text("ALTER TABLE user_profiles ADD COLUMN avatar_url TEXT"))
                 conn.commit()
+
+        # Create all missing tables including rag_meal_plans
+        Base.metadata.create_all(bind=engine)
     except Exception as e:
         print(f"Migration check error: {e}")
+
 
 def get_db():
     db = SessionLocal()

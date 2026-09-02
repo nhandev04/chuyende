@@ -183,6 +183,26 @@ export const api = {
         }
     },
 
+    async generateRAGMealPlan(userId: number): Promise<any> {
+        try {
+            const res = await client.post(`/ai/rag-meal-plan/${userId}`);
+            return res.data;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "🔒 'RAG AI Smart Meal Planner' feature requires Plus or Pro subscription tier.";
+            throw new Error(message);
+        }
+    },
+
+    async getLatestRAGMealPlan(userId: number): Promise<any> {
+        try {
+            const res = await client.get(`/ai/rag-meal-plan/${userId}/latest`);
+            return res.data;
+        } catch (err: any) {
+            return { has_plan: false };
+        }
+    },
+
+
     // Profile APIs
     async uploadAvatar(userId: number, file: File): Promise<{ avatar_url: string }> {
         try {

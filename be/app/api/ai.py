@@ -1,6 +1,8 @@
 import os
 import shutil
+import json
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.db.database import get_db
@@ -132,4 +134,82 @@ def create_ai_report(user_id: int, report_in: AIReportCreate, db: Session = Depe
     db.commit()
     db.refresh(report)
     return {"message": "Thank you for submitting your feedback! Data will be used to improve AI model accuracy.", "report_id": report.id}
+
+
+# --- RAG AI SMART MEAL PLANNER ENDPOINTS ---
+from app.services.rag_engine import generate_rag_meal_plan
+from app.db.models import RAGMealPlan, User, UserProfile, FoodLog
+
+@router.post("/rag-meal-plan/{user_id}")
+def create_rag_meal_plan(user_id: int, db: Session = Depends(get_db)):
+    """
+    RAG Smart Nutrition Feature: Generates personalized meal plan based on vector search & Gemini API.
+    Available to Plus and Pro tier users.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Tier access control
+    if user.role != "admin" and user.plan not in ["plus", "pro"]:
+        raise HTTPException(
+            status_code=403,
+            detail="🔒 'RAG AI Smart Meal Planner' feature requires Plus or Pro subscription tier."
+        )
+
+    profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+
+    # Consumed calories today
+    from datetime import datetime
+    today_start = datetime.combine(datetime.utcnow().date(), datetime.min.time())
+    today_logs = db.query(FoodLog).filter(
+        FoodLog.user_id == user_id,
+        FoodLog.logged_at >= today_start
+    ).all()
+    consumed_today = sum(l.calories for l in today_logs)
+
+    plan_tier = user.plan if user.role != "admin" else "pro"
+    rag_res = generate_rag_meal_plan(profile, consumed_today, plan_tier)
+
+    # Save to database
+    db_plan = RAGMealPlan(
+        user_id=user_id,
+        plan_tier=plan_tier,
+        target_calories=rag_res.get("target_calories", 2000.0),
+        plan_title=rag_res.get("plan_title", "RAG Meal Plan"),
+        summary_advice=rag_res.get("summary_advice", ""),
+        meal_data=json.dumps(rag_res.get("meals", []), ensure_ascii=False),
+        grocery_list=json.dumps(rag_res.get("grocery_list", []), ensure_ascii=False)
+    )
+    db.add(db_plan)
+    db.commit()
+    db.refresh(db_plan)
+
+    return rag_res
+
+
+@router.get("/rag-meal-plan/{user_id}/latest")
+def get_latest_rag_meal_plan(user_id: int, db: Session = Depends(get_db)):
+    """
+    Fetches the user's latest generated RAG meal plan.
+    """
+    plan = db.query(RAGMealPlan).filter(
+        RAGMealPlan.user_id == user_id
+    ).order_by(RAGMealPlan.created_at.desc()).first()
+
+    if not plan:
+        return {"has_plan": False, "data": None}
+
+    return {
+        "has_plan": True,
+        "id": plan.id,
+        "plan_tier": plan.plan_tier,
+        "target_calories": plan.target_calories,
+        "plan_title": plan.plan_title,
+        "summary_advice": plan.summary_advice,
+        "meals": json.loads(plan.meal_data),
+        "grocery_list": json.loads(plan.grocery_list) if plan.grocery_list else [],
+        "created_at": plan.created_at
+    }
+
 

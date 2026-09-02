@@ -25,6 +25,8 @@ class User(Base):
     food_logs = relationship("FoodLog", back_populates="user")
     weight_logs = relationship("WeightLog", back_populates="user")
     subscriptions = relationship("SubscriptionHistory", back_populates="user")
+    rag_meal_plans = relationship("RAGMealPlan", back_populates="user")
+
 
 class UserProfile(Base):
     __tablename__ = "user_profiles"
@@ -111,3 +113,19 @@ class SubscriptionHistory(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="subscriptions")
+
+class RAGMealPlan(Base):
+    __tablename__ = "rag_meal_plans"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    plan_tier = Column(String, nullable=False) # "plus" or "pro"
+    target_calories = Column(Float, nullable=False)
+    plan_title = Column(String, nullable=True)
+    summary_advice = Column(Text, nullable=True)
+    meal_data = Column(Text, nullable=False) # JSON String
+    grocery_list = Column(Text, nullable=True) # JSON String
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="rag_meal_plans")
+
