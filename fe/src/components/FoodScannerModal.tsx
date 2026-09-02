@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { api } from "../services/api";
-import type { AIAnalysisResult } from "../types";
-import { X, Camera, Upload, Sparkles, AlertTriangle, Edit3, Check } from "lucide-react";
+import type { User, AIAnalysisResult } from "../types";
+import { X, Camera, Upload, Sparkles, AlertTriangle, Edit3, Check, Lock } from "lucide-react";
 
 interface FoodScannerModalProps {
     isOpen: boolean;
     onClose: () => void;
     userId: number;
+    user?: User | null;
     onFoodLogged: () => void;
+    onOpenSubscription?: () => void;
 }
 
-export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onClose, userId, onFoodLogged }) => {
+export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onClose, userId, user, onFoodLogged, onOpenSubscription }) => {
     const [mode, setMode] = useState<"image" | "text">("image");
     const [textPrompt, setTextPrompt] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -32,6 +34,37 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
     const [scanError, setScanError] = useState<string | null>(null);
 
     if (!isOpen) return null;
+
+    const isAllowed = user?.role === 'admin' || ['plus', 'pro'].includes(user?.plan || '');
+
+    if (!isAllowed) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
+                <div className="bg-slate-900 border border-emerald-500/30 rounded-3xl w-full max-w-md p-6 shadow-2xl text-white text-center space-y-4 relative">
+                    <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800">
+                        <X className="w-5 h-5" />
+                    </button>
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                        <Lock className="w-7 h-7" />
+                    </div>
+                    <h3 className="text-lg font-extrabold text-white">🔒 Plus Tier Required</h3>
+                    <p className="text-xs text-slate-300">
+                        AI Food Image Scanning (YOLOv8) is exclusive to Plus & Pro tier users. Upgrade your subscription plan (~$1/mo) to unlock automated food photo scanning!
+                    </p>
+                    <button
+                        onClick={() => {
+                            onClose();
+                            if (onOpenSubscription) onOpenSubscription();
+                        }}
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg shadow-emerald-500/20"
+                    >
+                        Upgrade to Plus / Pro Tier →
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
 
     const handleScan = async (overrideFile?: File) => {
         const fileToScan = overrideFile || imageFile;

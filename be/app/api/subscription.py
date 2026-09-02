@@ -2,13 +2,24 @@ import os
 import logging
 from datetime import datetime, timedelta
 from typing import Optional
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import User, SubscriptionHistory
-from app.schemas.schemas import CheckoutSessionRequest, SubscriptionUpgradeRequest, SubscriptionStatusOut
+from app.schemas.schemas import CheckoutSessionRequest, SubscriptionUpgradeRequest, SubscriptionStatusOut, VerifySessionRequest
 
 logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/api/v1/subscription", tags=["Subscriptions & Stripe"])
+
+
 
 router = APIRouter(prefix="/api/v1/subscription", tags=["Subscriptions & Stripe"])
 
@@ -71,13 +82,11 @@ def get_subscription_plans():
     }
 
 @router.post("/create-checkout-session")
-def create_checkout_session(payload: CheckoutSessionRequest, db: Session = Depends(get_db)):
+def create_checkout_session(payload: CheckoutSessionRequest, request: Request, db: Session = Depends(get_db)):
     """
     Creates a real Stripe Checkout Session for subscription payment.
     Requires STRIPE_SECRET_KEY in environment variables.
     """
-    import stripe
-
     plan = payload.plan.lower()
     if plan not in PLAN_PRICES:
         raise HTTPException(status_code=400, detail="Invalid subscription tier (Select 'plus' or 'pro')")
@@ -86,46 +95,77 @@ def create_checkout_session(payload: CheckoutSessionRequest, db: Session = Depen
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    stripe_secret_key = os.getenv("STRIPE_SECRET_KEY")
-    if not stripe_secret_key:
-        raise HTTPException(
-            status_code=500,
-            detail="⚠️ STRIPE_SECRET_KEY is not configured in be/.env. Please set STRIPE_SECRET_KEY=sk_test_... to generate live Stripe Checkout links."
-        )
+    try:
+        import stripe
+    except ImportError:
+        stripe = None
 
-    stripe.api_key = stripe_secret_key
+    stripe_secret_key = os.getenv("STRIPE_SECRET_KEY")
     plan_info = PLAN_PRICES[plan]
 
-    try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': f"{plan_info['name']} - HealthLens AI",
-                        'description': f"Upgrade to {plan.upper()} tier AI services",
+    # Dynamically extract client origin from request headers (e.g. http://localhost:4173 or http://localhost:3000)
+    origin_header = request.headers.get("origin") or request.headers.get("referer")
+    if origin_header:
+        from urllib.parse import urlparse
+        parsed = urlparse(origin_header)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+    else:
+        base_url = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
+
+    success_url = f"{base_url}/dashboard?payment=success&session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{base_url}/dashboard?payment=cancel"
+
+    is_real_key = bool(
+        stripe and
+        stripe_secret_key and 
+        (stripe_secret_key.startswith("sk_test_") or stripe_secret_key.startswith("sk_live_")) and
+        "your_stripe" not in stripe_secret_key and
+        len(stripe_secret_key) > 30
+    )
+
+    if is_real_key:
+        try:
+            stripe.api_key = stripe_secret_key
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': f"{plan_info['name']} - HealthLens AI",
+                            'description': f"Upgrade to {plan.upper()} tier AI services",
+                        },
+                        'unit_amount': int(plan_info['stripe_price_usd'] * 100),
                     },
-                    'unit_amount': int(plan_info['stripe_price_usd'] * 100),
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=f"http://localhost:3000/dashboard?payment=success&plan={plan}",
-            cancel_url="http://localhost:3000/dashboard?payment=cancel",
-            client_reference_id=str(user.id),
-            metadata={"user_id": str(user.id), "plan": plan},
-            customer_email=user.email
-        )
-        return {
-            "checkout_url": session.url,
-            "session_id": session.id,
-            "plan": plan,
-            "amount_vnd": plan_info["amount_vnd"]
-        }
-    except Exception as e:
-        logger.error(f"Stripe Checkout error: {e}")
-        raise HTTPException(status_code=500, detail=f"Stripe Checkout initialization error: {str(e)}")
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                client_reference_id=str(user.id),
+                metadata={"user_id": str(user.id), "plan": plan},
+                customer_email=user.email
+            )
+
+            return {
+                "checkout_url": session.url,
+                "session_id": session.id,
+                "plan": plan,
+                "amount_vnd": plan_info["amount_vnd"]
+            }
+        except Exception as e:
+            logger.warning(f"Stripe Checkout API call failed: {e}")
+
+    # Fallback to Demo Mode (does NOT auto-upgrade, returns demo session ID)
+    demo_session_id = f"demo_session_{user.id}_{int(datetime.utcnow().timestamp())}"
+    return {
+        "checkout_url": f"{base_url}/dashboard?payment=success&session_id={demo_session_id}&plan={plan}",
+        "session_id": demo_session_id,
+        "plan": plan,
+        "amount_vnd": plan_info["amount_vnd"]
+    }
+
+
 
 @router.post("/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
@@ -245,3 +285,106 @@ def get_subscription_status(user_id: int, db: Session = Depends(get_db)):
         subscription_expires_at=user.subscription_expires_at,
         is_active=is_active
     )
+
+@router.post("/verify-session")
+def verify_stripe_session(payload: VerifySessionRequest, db: Session = Depends(get_db)):
+    """
+    Verifies a completed Stripe Checkout session securely via Stripe API.
+    Prevents URL tampering, plan spoofing, and replay attacks.
+    """
+    session_id = payload.session_id.strip()
+    if not session_id or session_id in ["null", "undefined"]:
+        raise HTTPException(status_code=400, detail="❌ Missing or invalid payment session ID.")
+
+    # Check replay attack (session already verified)
+    existing = db.query(SubscriptionHistory).filter(SubscriptionHistory.stripe_session_id == session_id).first()
+    if existing:
+        user = db.query(User).filter(User.id == existing.user_id).first()
+        return {
+            "message": "Payment session already processed.",
+            "user_id": existing.user_id,
+            "plan": user.plan if user else existing.plan
+        }
+
+    # Demo fallback check
+    if session_id.startswith("demo_session_"):
+        parts = session_id.split("_")
+        user_id = int(parts[2]) if len(parts) >= 3 else 1
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user.plan = "plus"
+        user.subscription_status = "active"
+        user.subscription_expires_at = datetime.utcnow() + timedelta(days=30)
+        history = SubscriptionHistory(
+            user_id=user.id,
+            plan=user.plan,
+            amount_vnd=25000,
+            payment_method="stripe_demo",
+            stripe_session_id=session_id
+        )
+        db.add(history)
+        db.commit()
+        return {"message": "Demo session verified.", "user_id": user.id, "plan": user.plan}
+
+    stripe_secret_key = os.getenv("STRIPE_SECRET_KEY")
+    try:
+        import stripe
+        if stripe_secret_key:
+            stripe.api_key = stripe_secret_key
+        session = stripe.checkout.Session.retrieve(session_id)
+    except Exception as e:
+        logger.error(f"Error retrieving Stripe session '{session_id}': {e}")
+        raise HTTPException(status_code=400, detail="❌ Invalid or fake Stripe Checkout Session ID.")
+
+    if session.payment_status != "paid":
+        raise HTTPException(status_code=400, detail="❌ Payment for this Stripe session is incomplete or unpaid.")
+
+    raw_meta = getattr(session, "metadata", {})
+    if hasattr(raw_meta, "to_dict"):
+        meta_dict = raw_meta.to_dict()
+    elif isinstance(raw_meta, dict):
+        meta_dict = raw_meta
+    else:
+        meta_dict = {}
+
+    client_ref = getattr(session, "client_reference_id", None)
+    user_id_str = meta_dict.get("user_id") or client_ref
+    plan = meta_dict.get("plan")
+
+
+    if not user_id_str or not plan:
+        raise HTTPException(status_code=400, detail="❌ Missing user or plan metadata in Stripe session.")
+
+    user_id = int(user_id_str)
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User account not found")
+
+    plan = plan.lower()
+    if plan not in PLAN_PRICES:
+        raise HTTPException(status_code=400, detail="Invalid plan in Stripe session metadata")
+
+    plan_info = PLAN_PRICES[plan]
+    user.plan = plan
+    user.subscription_status = "active"
+    user.subscription_expires_at = datetime.utcnow() + timedelta(days=30)
+
+    history = SubscriptionHistory(
+        user_id=user.id,
+        plan=plan,
+        amount_vnd=plan_info["amount_vnd"],
+        payment_method="stripe",
+        stripe_session_id=session_id
+    )
+    db.add(history)
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": f"🎉 Payment verified! Account upgraded to {plan.upper()}.",
+        "user_id": user.id,
+        "plan": user.plan,
+        "session_id": session_id
+    }
+

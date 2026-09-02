@@ -122,6 +122,22 @@ export const api = {
         }
     },
 
+    async verifyStripeSession(sessionId: string): Promise<User> {
+        try {
+            const res = await client.post("/subscription/verify-session", { session_id: sessionId });
+            const currentUser = this.getStoredUser();
+            const updated = currentUser 
+                ? { ...currentUser, plan: res.data.plan as 'plus' | 'pro' }
+                : { user_id: res.data.user_id, email: "", role: "user" as const, plan: res.data.plan as 'plus' | 'pro' };
+            
+            this.setStoredUser(updated, currentUser?.access_token);
+            return updated;
+        } catch (err: any) {
+            const message = err.response?.data?.detail || "Failed to verify Stripe payment session.";
+            throw new Error(message);
+        }
+    },
+
     async upgradeSubscription(plan: 'plus' | 'pro', userId: number): Promise<User> {
         try {
             const res = await client.post("/subscription/upgrade", { plan, user_id: userId, payment_method: "stripe" });
@@ -137,6 +153,7 @@ export const api = {
             throw new Error(message);
         }
     },
+
 
     async getProDailyMealRecommendations(userId: number): Promise<DailyMealPlan> {
         try {

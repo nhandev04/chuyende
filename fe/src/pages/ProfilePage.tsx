@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { api } from '../services/api';
 import type { User, UserProfile } from '../types';
@@ -28,6 +28,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const [dietPref, setDietPref] = useState(profile?.dietary_preferences || '');
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setHeightCm(profile.height_cm);
+      setCurrentWeight(profile.current_weight_kg);
+      setTargetWeight(profile.target_weight_kg);
+      setAge(profile.age);
+      setGoal(profile.goal || 'weight_loss');
+      setCalorieTarget(profile.daily_calorie_target || 2000);
+      setDietPref(profile.dietary_preferences || '');
+    }
+  }, [profile]);
+
 
   if (!user) {
     return (

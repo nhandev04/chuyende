@@ -35,23 +35,26 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     setSuccessMessage(null);
 
     try {
-      // Create Stripe checkout session
+      // 1. Request Stripe checkout session URL from backend
       const session = await api.createCheckoutSession(planId, currentUser.user_id);
-      
-      // Perform direct upgrade / simulate Stripe redirect
+
+      // 2. If valid Stripe Checkout URL is returned, redirect directly to Stripe payment page!
+      if (session.checkout_url && session.checkout_url.startsWith("http") && !session.checkout_url.includes("demo_success")) {
+        window.location.href = session.checkout_url;
+        return;
+      }
+
+      // 3. Fallback for offline demo mode only (if no live Stripe key is configured)
       const updatedUser = await api.upgradeSubscription(planId, currentUser.user_id);
       onPlanUpgraded(updatedUser);
-      setSuccessMessage(`🎉 You have successfully upgraded to ${planId.toUpperCase()} tier!`);
-      
-      if (session.checkout_url && !session.checkout_url.includes("demo_success")) {
-        window.location.href = session.checkout_url;
-      }
+      setSuccessMessage(`🎉 [Demo Mode] Upgraded to ${planId.toUpperCase()} tier!`);
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to initialize Stripe checkout. Please try again.");
     } finally {
       setLoadingPlan(null);
     }
   };
+
 
   const plans: SubscriptionPlan[] = [
     {
@@ -100,18 +103,20 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 my-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-md animate-fadeIn p-3 sm:p-6 flex items-start sm:items-center justify-center min-h-screen">
+      <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 my-auto scrollbar-thin">
 
-        
+
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 p-6 md:p-8 text-white text-center">
+        <div className="relative bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 p-6 md:p-10 text-white text-center">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-black/20 hover:bg-black/40 rounded-full transition"
+            className="absolute top-5 right-5 p-3 text-white/80 hover:text-white bg-black/30 hover:bg-black/50 rounded-full transition shadow-lg"
+            title="Close Modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
+
           
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-semibold uppercase tracking-wider mb-2">
             <Sparkles className="w-4 h-4 text-amber-300" /> AI Services & Pricing Matrix

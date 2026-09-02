@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import type { UserProfile, BodyAnalysisResult } from "../types";
+import type { User, UserProfile, BodyAnalysisResult } from "../types";
+
 import { api } from "../services/api";
 import { Upload, Camera, Sparkles, X, Edit3 } from "lucide-react";
 
@@ -7,6 +8,7 @@ interface OnboardingModalProps {
     isOpen: boolean;
     onClose: () => void;
     userId: number;
+    user?: User | null;
     currentProfile?: UserProfile | null;
     onSaveProfile: (profile: UserProfile) => void;
     onOpenSubscription?: () => void;
@@ -16,10 +18,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     isOpen,
     onClose,
     userId,
+    user,
     currentProfile,
     onSaveProfile,
     onOpenSubscription
 }) => {
+
     const [method, setMethod] = useState<"manual" | "ai">("manual");
 
     // Physical stats
@@ -298,20 +302,38 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 {/* METHOD 2: AI CAMERA SCAN METHOD */}
                 {method === "ai" && (
                     <div className="space-y-4 animate-fadeIn">
-                        <div className="p-3 bg-indigo-950/60 border border-indigo-500/30 rounded-2xl flex items-center justify-between text-xs">
-                            <span className="text-indigo-200">✨ AI YOLO Pose 17 Keypoints Feature (Pro Tier Exclusive)</span>
-                            {onOpenSubscription && (
-                                <button
-                                    onClick={onOpenSubscription}
-                                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-[11px] shrink-0"
-                                >
-                                    Upgrade Pro
-                                </button>
-                            )}
-                        </div>
-                        <p className="text-xs text-slate-400">
-                            Upload a clear full-body photo to estimate height, weight, and 10-level BMI scale from YOLO pose skeleton keypoints.
-                        </p>
+                        {user?.role !== 'admin' && user?.plan !== 'pro' ? (
+                            <div className="p-6 bg-slate-950/80 border border-indigo-500/40 rounded-2xl text-center space-y-3">
+                                <div className="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto">
+                                    <Sparkles className="w-6 h-6" />
+                                </div>
+                                <h3 className="font-extrabold text-sm text-indigo-200">🔒 Pro Tier Exclusive Feature</h3>
+                                <p className="text-xs text-slate-400">
+                                    Full-body AI Pose Analysis (YOLOv8 Pose 17 Keypoints & 10-level BMI Scale) requires Pro subscription tier.
+                                </p>
+                                {onOpenSubscription && (
+                                    <button
+                                        onClick={() => {
+                                            handleClose();
+                                            onOpenSubscription();
+                                        }}
+                                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg"
+                                    >
+                                        Upgrade to Pro Tier →
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                <div className="p-3 bg-indigo-950/60 border border-indigo-500/30 rounded-2xl flex items-center justify-between text-xs">
+                                    <span className="text-indigo-200">✨ AI YOLO Pose 17 Keypoints Feature (Pro Tier Active)</span>
+                                </div>
+                                <p className="text-xs text-slate-400">
+                                    Upload a clear full-body photo to estimate height, weight, and 10-level BMI scale from YOLO pose skeleton keypoints.
+                                </p>
+                            </>
+                        )}
+
 
 
                         {aiError && (

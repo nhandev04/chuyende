@@ -40,6 +40,14 @@ function ClerkUserSync({ onSynced }: { onSynced: (user: User) => void }) {
   return null;
 }
 
+const getTabFromPath = (): 'dashboard' | 'history' | 'profile' | 'admin' => {
+  const path = window.location.pathname.replace('/', '').toLowerCase();
+  if (path === 'profile') return 'profile';
+  if (path === 'history') return 'history';
+  if (path === 'admin') return 'admin';
+  return 'dashboard';
+};
+
 export function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('health_app_theme');
@@ -49,8 +57,24 @@ export function App() {
   const [user, setUser] = useState<User | null>(() => api.getStoredUser());
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'profile' | 'admin'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'profile' | 'admin'>(getTabFromPath);
   const [refreshKey, setRefreshKey] = useState<number>(0);
+
+  const navigateTab = (tab: 'dashboard' | 'history' | 'profile' | 'admin') => {
+    setActiveTab(tab);
+    const targetPath = tab === 'dashboard' ? '/' : `/${tab}`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, '', targetPath);
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTab(getTabFromPath());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Modals
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -77,6 +101,29 @@ export function App() {
     loadUserProfile();
   }, [user, refreshKey]);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    const sessionId = urlParams.get('session_id');
+
+    if (paymentStatus === 'success' && sessionId) {
+      api.verifyStripeSession(sessionId).then((updatedUser) => {
+        setUser(updatedUser);
+        setRefreshKey(prev => prev + 1);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        alert(`🎉 Payment Verified! Your account has been upgraded to ${(updatedUser.plan || 'PLUS').toUpperCase()} tier.`);
+      }).catch((err) => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        alert(err.message || "❌ Unable to verify payment session. Security verification failed.");
+      });
+    } else if (paymentStatus === 'success' && !sessionId) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      alert("❌ Invalid payment parameters. Security verification failed.");
+    }
+  }, []);
+
+
+
 
 
   const handleAuthSuccess = async (authUser: User, isNewRegistration: boolean = false) => {
@@ -87,9 +134,9 @@ export function App() {
     setProfile(p);
 
     if (authUser.role === 'admin') {
-      setActiveTab('admin');
+      navigateTab('admin');
     } else {
-      setActiveTab('dashboard');
+      navigateTab('dashboard');
     }
 
     if (isNewRegistration) {
@@ -103,19 +150,18 @@ export function App() {
     api.setStoredUser(null);
     setUser(null);
     setProfile(null);
-    setActiveTab('dashboard');
+    navigateTab('dashboard');
   };
 
   const handleToggleAdmin = () => {
     if (activeTab === 'admin') {
-      setActiveTab('dashboard');
+      navigateTab('dashboard');
     } else {
-      setActiveTab('admin');
+      navigateTab('admin');
     }
   };
 
   const handleFoodLogged = () => {
-    setActiveTab('dashboard');
     setRefreshKey(prev => prev + 1);
   };
 
@@ -139,7 +185,7 @@ export function App() {
         user={user}
         profile={profile}
         onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenProfile={() => setActiveTab('profile')}
+        onOpenProfile={() => navigateTab('profile')}
         onOpenSubscription={() => setIsSubscriptionOpen(true)}
         onToggleAdmin={handleToggleAdmin}
         isAdminView={activeTab === 'admin'}
@@ -186,7 +232,7 @@ export function App() {
       {/* Sticky Bottom Navigation (Mobile View) */}
       <BottomNav
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={navigateTab}
         onOpenScanner={() => setIsScannerOpen(true)}
         isAdmin={user?.role === 'admin'}
         theme={theme}
@@ -210,6 +256,7 @@ export function App() {
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
         userId={user?.user_id || 1}
+        user={user}
         currentProfile={profile}
         onSaveProfile={(p) => {
           setProfile(p);
@@ -225,7 +272,12 @@ export function App() {
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
         userId={user?.user_id || 1}
+        user={user}
         onFoodLogged={handleFoodLogged}
+        onOpenSubscription={() => {
+          setIsScannerOpen(false);
+          setIsSubscriptionOpen(true);
+        }}
       />
 
       <WeightLogModal
@@ -246,4 +298,3 @@ export function App() {
 }
 
 export default App;
-

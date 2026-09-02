@@ -32,10 +32,14 @@ class CheckoutSessionRequest(BaseModel):
     plan: str # "plus" or "pro"
     user_id: int
 
+class VerifySessionRequest(BaseModel):
+    session_id: str
+
 class SubscriptionUpgradeRequest(BaseModel):
     plan: str # "plus" or "pro"
     user_id: int
     payment_method: Optional[str] = "stripe"
+
 
 class SubscriptionStatusOut(BaseModel):
     user_id: int
