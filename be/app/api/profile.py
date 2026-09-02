@@ -10,6 +10,8 @@ from app.schemas.schemas import UserProfileUpdate, UserProfileOut, BodyAnalysisR
 from app.services.body_pose_analyzer import predict_height_weight_from_body
 from app.services.analysis_engine import compute_body_metrics
 
+from app.api.subscription import expire_outdated_subscriptions
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/profile", tags=["Profile"])
@@ -19,7 +21,10 @@ os.makedirs(TEMP_BODY_DIR, exist_ok=True)
 
 @router.get("/{user_id}", response_model=UserProfileOut)
 def get_profile(user_id: int, db: Session = Depends(get_db)):
+    expire_outdated_subscriptions(db)
+
     profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+
     if not profile:
         initial_body = compute_body_metrics(170.0, 65.0, 22, "male", "weight_loss")
         profile = UserProfile(

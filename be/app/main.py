@@ -42,6 +42,14 @@ app.include_router(admin.router)
 app.include_router(subscription.router)
 
 
+import asyncio
+from app.services.subscription_cron import start_subscription_expiration_cron
+
+@app.on_event("startup")
+async def on_startup():
+    # Spawn subscription expiration cronjob task (scans every 1 hour / 3600 seconds)
+    asyncio.create_task(start_subscription_expiration_cron(3600))
+
 @app.get("/")
 def root():
     return {
@@ -49,3 +57,4 @@ def root():
         "message": "AI Health Care & Calorie Quantification API is running",
         "docs_url": "/docs"
     }
+

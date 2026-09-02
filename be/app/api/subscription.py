@@ -267,16 +267,35 @@ def upgrade_subscription(payload: SubscriptionUpgradeRequest, db: Session = Depe
         "transaction_id": history.id
     }
 
+def expire_outdated_subscriptions(db: Session):
+    """
+    Scans DB for expired subscriptions (expires_at < now)
+    and automatically resets plan to 'standard' and status to 'expired'.
+    """
+    now = datetime.utcnow()
+    expired_users = db.query(User).filter(
+        User.plan != "standard",
+        User.subscription_expires_at != None,
+        User.subscription_expires_at < now
+    ).all()
+
+    for u in expired_users:
+        logger.info(f"Subscription expired for User #{u.id} (expired at {u.subscription_expires_at}). Downgrading to 'standard'.")
+        u.plan = "standard"
+        u.subscription_status = "expired"
+
+    if expired_users:
+        db.commit()
+
 @router.get("/status/{user_id}", response_model=SubscriptionStatusOut)
 def get_subscription_status(user_id: int, db: Session = Depends(get_db)):
+    expire_outdated_subscriptions(db)
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-
-    is_active = True
-    if user.subscription_expires_at and user.subscription_expires_at < datetime.utcnow():
-        is_active = False
+    is_active = user.plan in ["plus", "pro"] and (user.subscription_expires_at is None or user.subscription_expires_at >= datetime.utcnow())
 
     return SubscriptionStatusOut(
         user_id=user.id,
@@ -285,6 +304,7 @@ def get_subscription_status(user_id: int, db: Session = Depends(get_db)):
         subscription_expires_at=user.subscription_expires_at,
         is_active=is_active
     )
+
 
 @router.post("/verify-session")
 def verify_stripe_session(payload: VerifySessionRequest, db: Session = Depends(get_db)):

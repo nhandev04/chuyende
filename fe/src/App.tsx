@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import type { User, UserProfile } from './types';
+
 import { api } from './services/api';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
@@ -16,7 +17,16 @@ import { AdminPage } from './pages/AdminPage';
 
 import { SubscriptionModal } from './components/SubscriptionModal';
 
+function useClerkSafe() {
+  try {
+    return useClerk();
+  } catch {
+    return null;
+  }
+}
+
 function ClerkUserSync({ onSynced }: { onSynced: (user: User) => void }) {
+
   const { isSignedIn, user: clerkUser } = useUser();
   const [syncedId, setSyncedId] = useState<string | null>(null);
 
@@ -146,12 +156,28 @@ export function App() {
     }
   };
 
-  const handleLogout = () => {
+  const clerk = useClerkSafe();
+
+  const handleLogout = async () => {
     api.setStoredUser(null);
     setUser(null);
     setProfile(null);
+
+    if (clerk && clerk.signOut) {
+      try {
+        await clerk.signOut();
+      } catch (err) {
+        console.warn("Clerk signout notice:", err);
+      }
+    }
+
+    localStorage.removeItem("health_app_user");
+    localStorage.removeItem("health_app_token");
+    sessionStorage.clear();
+
     navigateTab('dashboard');
   };
+
 
   const handleToggleAdmin = () => {
     if (activeTab === 'admin') {
@@ -220,9 +246,11 @@ export function App() {
             profile={profile}
             onUpdateProfile={(updated) => setProfile(updated)}
             onLogout={handleLogout}
+            onOpenSubscription={() => setIsSubscriptionOpen(true)}
             theme={theme}
           />
         )}
+
 
         {activeTab === 'admin' && (
           <AdminPage theme={theme} />

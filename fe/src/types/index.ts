@@ -19,6 +19,15 @@ export interface SubscriptionPlan {
   is_current_default: boolean;
 }
 
+export interface SubscriptionStatusOut {
+  user_id: number;
+  plan: 'standard' | 'plus' | 'pro';
+  subscription_status: string;
+  subscription_expires_at?: string | null;
+  is_active: boolean;
+}
+
+
 export interface DailyMealPlan {
   title: string;
   target_daily_calories: number;

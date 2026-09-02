@@ -302,14 +302,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 {/* METHOD 2: AI CAMERA SCAN METHOD */}
                 {method === "ai" && (
                     <div className="space-y-4 animate-fadeIn">
-                        {user?.role !== 'admin' && user?.plan !== 'pro' ? (
-                            <div className="p-6 bg-slate-950/80 border border-indigo-500/40 rounded-2xl text-center space-y-3">
-                                <div className="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto">
-                                    <Sparkles className="w-6 h-6" />
+                        {/* CASE 1: STANDARD TIER - Completely Locked */}
+                        {(!user?.plan || user.plan === 'standard') && user?.role !== 'admin' ? (
+                            <div className="p-6 bg-slate-950/90 border border-rose-500/30 rounded-2xl text-center space-y-4 shadow-xl">
+                                <div className="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                                    <Sparkles className="w-7 h-7" />
                                 </div>
-                                <h3 className="font-extrabold text-sm text-indigo-200">🔒 Pro Tier Exclusive Feature</h3>
-                                <p className="text-xs text-slate-400">
-                                    Full-body AI Pose Analysis (YOLOv8 Pose 17 Keypoints & 10-level BMI Scale) requires Pro subscription tier.
+                                <h3 className="font-extrabold text-base text-rose-200">🔒 AI Photo Analysis Locked</h3>
+                                <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
+                                    AI Body Photo Scanning & YOLO Pose analysis is not available on the <strong className="text-slate-200">Standard Tier</strong>. Please upgrade your subscription tier to unlock AI features.
                                 </p>
                                 {onOpenSubscription && (
                                     <button
@@ -317,161 +318,196 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                             handleClose();
                                             onOpenSubscription();
                                         }}
-                                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg"
+                                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-transform hover:scale-[1.02]"
                                     >
-                                        Upgrade to Pro Tier →
+                                        Upgrade Subscription Tier →
                                     </button>
                                 )}
                             </div>
                         ) : (
+                            /* CASE 2 & 3: PLUS and PRO/ADMIN TIER */
                             <>
-                                <div className="p-3 bg-indigo-950/60 border border-indigo-500/30 rounded-2xl flex items-center justify-between text-xs">
-                                    <span className="text-indigo-200">✨ AI YOLO Pose 17 Keypoints Feature (Pro Tier Active)</span>
-                                </div>
-                                <p className="text-xs text-slate-400">
-                                    Upload a clear full-body photo to estimate height, weight, and 10-level BMI scale from YOLO pose skeleton keypoints.
-                                </p>
-                            </>
-                        )}
-
-
-
-                        {aiError && (
-                            <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
-                                {aiError}
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-xs text-slate-400 mb-1">
-                                    Height (cm) (Auto-updated by photo)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={heightCm}
-                                    onChange={(e) => setHeightCm(Number(e.target.value))}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-emerald-400 font-bold"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs text-slate-400 mb-1">
-                                    Weight (kg) (Auto-updated by photo)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={currentWeightKg}
-                                    onChange={(e) => setCurrentWeightKg(Number(e.target.value))}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-emerald-400 font-bold"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Photo Upload Zone */}
-                        <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500/50 rounded-2xl p-4 text-center bg-slate-800/40 relative">
-                            {photoPreview ? (
-                                <div className="relative inline-block">
-                                    <img
-                                        src={photoPreview}
-                                        alt="Body"
-                                        className="h-44 rounded-xl object-cover border border-slate-700"
-                                    />
-                                    {/* Remove photo button */}
-                                    <button
-                                        onClick={handleClearPhoto}
-                                        className="absolute -top-2 -right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-full shadow-lg transition-colors"
-                                        title="Remove photo"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                    <label className="absolute bottom-2 right-2 bg-slate-950/80 p-2 rounded-full cursor-pointer text-emerald-400">
-                                        <Camera className="w-4 h-4" />
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handlePhotoUpload}
-                                            className="hidden"
-                                        />
-                                    </label>
-                                </div>
-                            ) : (
-                                <label className="cursor-pointer block py-5">
-                                    <Upload className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                                    <span className="text-xs font-semibold text-slate-300">
-                                        Tap to select or capture full-body photo for AI Pose
-                                    </span>
-                                    <span className="block text-[10px] text-slate-500 mt-1">
-                                        YOLO Pose extracts 17 skeleton keypoints & calculates dynamic BMI
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handlePhotoUpload}
-                                        className="hidden"
-                                    />
-                                </label>
-                            )}
-                        </div>
-
-                        {/* AI Estimation Result Display */}
-                        {analyzingPhoto && (
-                            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center text-xs text-emerald-400 animate-pulse">
-                                <Sparkles className="w-5 h-5 mx-auto mb-1" />
-                                AI YOLO Pose is extracting 17 skeleton keypoints & analyzing 10-level BMI scale...
-                            </div>
-                        )}
-
-                        {aiBodyAnalysis && !analyzingPhoto && (
-                            <div className="p-4 bg-slate-800/80 border border-emerald-500/30 rounded-2xl space-y-3 text-xs">
-                                <div className="flex items-center justify-between font-bold text-emerald-400">
-                                    <span>AI Body Shape: {aiBodyAnalysis.body_shape}</span>
-                                    <span>TDEE: {aiBodyAnalysis.tdee} kcal</span>
-                                </div>
-
-                                {aiBodyAnalysis.bmi_level && (
-                                    <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-700">
-                                        <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
-                                            <span className="text-amber-400">📊 BMI Scale: Level {aiBodyAnalysis.bmi_level}/10</span>
-                                            <span className="text-emerald-300">{aiBodyAnalysis.bmi_level_label}</span>
+                                {/* CASE 2: PLUS TIER BANNER */}
+                                {user?.plan === 'plus' && user?.role !== 'admin' && (
+                                    <div className="p-3.5 bg-indigo-950/70 border border-indigo-500/40 rounded-2xl space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                <Sparkles className="w-4 h-4 text-indigo-400" />
+                                                <span className="font-extrabold text-xs text-indigo-200">🔒 Pro Tier Exclusive Feature</span>
+                                            </div>
+                                            {onOpenSubscription && (
+                                                <button
+                                                    onClick={() => {
+                                                        handleClose();
+                                                        onOpenSubscription();
+                                                    }}
+                                                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] rounded-lg shadow transition"
+                                                >
+                                                    Upgrade Pro →
+                                                </button>
+                                            )}
                                         </div>
-                                        <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex">
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lvl) => (
-                                                <div
-                                                    key={lvl}
-                                                    className={`flex-1 h-full border-r border-slate-900 transition-all ${
-                                                        lvl <= (aiBodyAnalysis.bmi_level || 5)
-                                                            ? (aiBodyAnalysis.bmi_level || 5) <= 3
-                                                                ? "bg-amber-400"
-                                                                : (aiBodyAnalysis.bmi_level || 5) <= 5
-                                                                  ? "bg-emerald-400"
-                                                                  : (aiBodyAnalysis.bmi_level || 5) <= 7
-                                                                    ? "bg-orange-400"
-                                                                    : "bg-rose-500"
-                                                            : "bg-slate-700/50"
-                                                    }`}
-                                                />
-                                            ))}
+                                        <p className="text-[11px] text-indigo-300/90 leading-normal">
+                                            Full-body AI Pose Analysis (YOLOv8 Pose 17 Keypoints & 10-level BMI Scale) requires Pro subscription tier.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* CASE 3: PRO / ADMIN TIER BANNER */}
+                                {(user?.plan === 'pro' || user?.role === 'admin') && (
+                                    <div className="p-3.5 bg-gradient-to-r from-amber-950/50 via-slate-900 to-indigo-950/50 border border-amber-500/40 rounded-2xl flex items-center space-x-3">
+                                        <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 font-bold">
+                                            👑
+                                        </div>
+                                        <div>
+                                            <span className="font-extrabold text-xs text-amber-300 block">✨ Pro Tier Active — Best Version Unlocked</span>
+                                            <span className="text-[11px] text-slate-400">You are using our highest tier AI Full-Body Pose Analysis (YOLOv8 17 Keypoints & 10-level BMI Scale).</span>
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="text-slate-300 leading-relaxed whitespace-pre-line">
-                                    {aiBodyAnalysis.recommendation}
+                                {aiError && (
+                                    <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+                                        {aiError}
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">
+                                            Height (cm) (Auto-updated by photo)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={heightCm}
+                                            onChange={(e) => setHeightCm(Number(e.target.value))}
+                                            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-emerald-400 font-bold"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">
+                                            Weight (kg) (Auto-updated by photo)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={currentWeightKg}
+                                            onChange={(e) => setCurrentWeightKg(Number(e.target.value))}
+                                            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-emerald-400 font-bold"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+
+                                {/* Photo Upload Zone */}
+                                <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500/50 rounded-2xl p-4 text-center bg-slate-800/40 relative">
+                                    {photoPreview ? (
+                                        <div className="relative inline-block">
+                                            <img
+                                                src={photoPreview}
+                                                alt="Body"
+                                                className="h-44 rounded-xl object-cover border border-slate-700"
+                                            />
+                                            {/* Remove photo button */}
+                                            <button
+                                                onClick={handleClearPhoto}
+                                                className="absolute -top-2 -right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-full shadow-lg transition-colors"
+                                                title="Remove photo"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                            <label className="absolute bottom-2 right-2 bg-slate-950/80 p-2 rounded-full cursor-pointer text-emerald-400">
+                                                <Camera className="w-4 h-4" />
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handlePhotoUpload}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        </div>
+                                    ) : (
+                                        <label className="cursor-pointer block py-5">
+                                            <Upload className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                                            <span className="text-xs font-semibold text-slate-300">
+                                                Tap to select or capture full-body photo for AI Pose
+                                            </span>
+                                            <span className="block text-[10px] text-slate-500 mt-1">
+                                                YOLO Pose extracts 17 skeleton keypoints & calculates dynamic BMI
+                                            </span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handlePhotoUpload}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+
+                                {/* AI Estimation Result Display */}
+                                {analyzingPhoto && (
+                                    <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center text-xs text-emerald-400 animate-pulse">
+                                        <Sparkles className="w-5 h-5 mx-auto mb-1" />
+                                        AI YOLO Pose is extracting 17 skeleton keypoints & analyzing 10-level BMI scale...
+                                    </div>
+                                )}
+
+                                {aiBodyAnalysis && !analyzingPhoto && (
+                                    <div className="p-4 bg-slate-800/80 border border-emerald-500/30 rounded-2xl space-y-3 text-xs">
+                                        <div className="flex items-center justify-between font-bold text-emerald-400">
+                                            <span>AI Body Shape: {aiBodyAnalysis.body_shape}</span>
+                                            <span>TDEE: {aiBodyAnalysis.tdee} kcal</span>
+                                        </div>
+
+                                        {aiBodyAnalysis.bmi_level && (
+                                            <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-700">
+                                                <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
+                                                    <span className="text-amber-400">📊 BMI Scale: Level {aiBodyAnalysis.bmi_level}/10</span>
+                                                    <span className="text-emerald-300">{aiBodyAnalysis.bmi_level_label}</span>
+                                                </div>
+                                                <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex">
+                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lvl) => (
+                                                        <div
+                                                            key={lvl}
+                                                            className={`flex-1 h-full border-r border-slate-900 transition-all ${
+                                                                lvl <= (aiBodyAnalysis.bmi_level || 5)
+                                                                    ? (aiBodyAnalysis.bmi_level || 5) <= 3
+                                                                        ? "bg-amber-400"
+                                                                        : (aiBodyAnalysis.bmi_level || 5) <= 5
+                                                                          ? "bg-emerald-400"
+                                                                          : (aiBodyAnalysis.bmi_level || 5) <= 7
+                                                                            ? "bg-orange-400"
+                                                                            : "bg-rose-500"
+                                                                    : "bg-slate-700/50"
+                                                            }`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="text-slate-300 leading-relaxed whitespace-pre-line">
+                                            {aiBodyAnalysis.recommendation}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <button
+
+                                    onClick={handleFinish}
+                                    disabled={saving}
+                                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
+                                >
+                                    {saving ? "Saving..." : "Save & Initialize AI Analysis →"}
+                                </button>
+                            </>
                         )}
 
-                        <button
-                            onClick={handleFinish}
-                            disabled={saving}
-                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
-                        >
-                            {saving ? "Saving..." : "Save & Initialize AI Analysis →"}
-                        </button>
                     </div>
                 )}
+
 
             </div>
         </div>
     );
 };
+

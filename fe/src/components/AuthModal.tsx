@@ -57,6 +57,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     setError('');
     try {
       if (clerk && clerk.openSignIn) {
+        if (clerk.session) {
+          try {
+            await clerk.signOut();
+          } catch {
+            // Ignore signout error if session was already dead
+          }
+        }
         clerk.openSignIn({});
       } else {
         throw new Error("⚠️ VITE_CLERK_PUBLISHABLE_KEY is not configured in fe/.env. Please add VITE_CLERK_PUBLISHABLE_KEY=pk_test_... to run live Clerk Google OAuth.");
@@ -67,6 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       setLoading(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">

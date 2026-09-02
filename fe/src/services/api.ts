@@ -12,7 +12,9 @@ import type {
     AIReportItem,
     SubscriptionPlan,
     DailyMealPlan,
+    SubscriptionStatusOut,
 } from "../types";
+
 
 const API_BASE_URL = "http://localhost:8000/api/v1";
 
@@ -138,7 +140,23 @@ export const api = {
         }
     },
 
+    async getSubscriptionStatus(userId: number): Promise<SubscriptionStatusOut> {
+        try {
+            const res = await client.get(`/subscription/status/${userId}`);
+            return res.data;
+        } catch {
+            return {
+                user_id: userId,
+                plan: 'standard',
+                subscription_status: 'active',
+                subscription_expires_at: null,
+                is_active: false
+            };
+        }
+    },
+
     async upgradeSubscription(plan: 'plus' | 'pro', userId: number): Promise<User> {
+
         try {
             const res = await client.post("/subscription/upgrade", { plan, user_id: userId, payment_method: "stripe" });
             const currentUser = this.getStoredUser();

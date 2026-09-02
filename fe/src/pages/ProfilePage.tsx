@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 import { api } from '../services/api';
-import type { User, UserProfile } from '../types';
-import { Save, LogOut, CheckCircle2, Sliders } from 'lucide-react';
+import type { User, UserProfile, SubscriptionStatusOut } from '../types';
+import { Save, LogOut, CheckCircle2, Sliders, Crown, Calendar, Zap, ShieldCheck } from 'lucide-react';
 
 interface ProfilePageProps {
   user: User | null;
   profile: UserProfile | null;
   onUpdateProfile: (updated: UserProfile) => void;
   onLogout: () => void;
+  onOpenSubscription?: () => void;
   theme?: 'dark' | 'light';
 }
 
@@ -17,6 +18,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   profile,
   onUpdateProfile,
   onLogout,
+  onOpenSubscription,
   theme = 'dark'
 }) => {
   const [heightCm, setHeightCm] = useState(profile?.height_cm || 172);
@@ -28,6 +30,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const [dietPref, setDietPref] = useState(profile?.dietary_preferences || '');
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [subStatus, setSubStatus] = useState<SubscriptionStatusOut | null>(null);
+
+  useEffect(() => {
+    if (user?.user_id) {
+      api.getSubscriptionStatus(user.user_id).then(setSubStatus).catch(() => null);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (profile) {
@@ -40,6 +49,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       setDietPref(profile.dietary_preferences || '');
     }
   }, [profile]);
+
 
 
   if (!user) {
@@ -93,6 +103,73 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           {user?.role === 'admin' ? 'Administrator Account (Admin)' : 'Standard User Account'}
         </span>
       </div>
+
+      {/* Subscription Tier & Expiration Date Card */}
+      <div className={`border rounded-3xl p-5 shadow-xl relative overflow-hidden ${
+        user?.role === 'admin'
+          ? 'bg-gradient-to-r from-slate-900 via-amber-950/40 to-slate-900 border-amber-500/40'
+          : user?.plan === 'pro'
+          ? 'bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border-indigo-500/40'
+          : user?.plan === 'plus'
+          ? 'bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 border-emerald-500/40'
+          : cardBg
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold ${
+              user?.role === 'admin' || user?.plan === 'pro' ? 'bg-amber-500/20 text-amber-400' : user?.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/40 text-slate-400'
+            }`}>
+              {user?.role === 'admin' ? <ShieldCheck className="w-6 h-6" /> : user?.plan === 'pro' ? <Crown className="w-6 h-6 fill-amber-400 text-amber-400" /> : user?.plan === 'plus' ? <Zap className="w-6 h-6" /> : <Calendar className="w-6 h-6" />}
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CURRENT SUBSCRIPTION PLAN</span>
+              <h3 className={`text-base font-extrabold flex items-center gap-2 ${textMain}`}>
+                {user?.role === 'admin' ? 'ADMINISTRATOR TIER' : (user?.plan || 'STANDARD').toUpperCase() + ' TIER'}
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                  user?.role === 'admin' || user?.plan === 'pro' ? 'bg-amber-500/20 text-amber-400' : user?.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/50 text-slate-400'
+                }`}>
+                  {subStatus?.subscription_status || 'Active'}
+                </span>
+              </h3>
+            </div>
+          </div>
+
+          {onOpenSubscription && (
+            <button
+              type="button"
+              onClick={onOpenSubscription}
+              className="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition hover:scale-105"
+            >
+              Manage / Upgrade
+            </button>
+          )}
+        </div>
+
+        {/* Expiration Details */}
+        <div className={`mt-4 pt-3 border-t text-xs flex items-center justify-between ${isDark ? 'border-slate-800/80 text-slate-300' : 'border-slate-200 text-slate-600'}`}>
+          <div className="flex items-center space-x-1.5">
+            <Calendar className="w-4 h-4 text-emerald-400" />
+            <span>
+              {user?.role === 'admin' ? (
+                <strong className="text-amber-400">Unlimited System Access (No Expiration)</strong>
+              ) : subStatus?.subscription_expires_at ? (
+                <>
+                  Valid until: <strong className="text-emerald-400">{new Date(subStatus.subscription_expires_at).toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric' })}</strong>
+                </>
+              ) : (
+                <span className="text-slate-400">Lifetime Standard Free Tier (No expiration)</span>
+              )}
+            </span>
+          </div>
+
+          {subStatus?.subscription_expires_at && user?.role !== 'admin' && (
+            <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+              {Math.max(0, Math.ceil((new Date(subStatus.subscription_expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days remaining
+            </span>
+          )}
+        </div>
+      </div>
+
 
       {savedSuccess && (
         <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-2xl text-center text-xs text-emerald-500 flex items-center justify-center space-x-2 animate-fadeIn">
