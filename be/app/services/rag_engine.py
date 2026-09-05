@@ -1,120 +1,216 @@
 import os
 import json
 import logging
+import random
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+logging.getLogger("google_genai").setLevel(logging.ERROR)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-# Sample Ground-Truth Vietnamese & Asian Health Recipes Database
+# Ground-Truth Health Recipes Database (Expanded Library in English)
 SEED_RECIPES = [
     {
         "id": "recipe_1",
-        "food_name": "Phở Bò Tái Nạm (Healthy Broth)",
+        "food_name": "Lean Beef Pho with Brown Rice Noodles & Clear Vegetable Broth",
         "category": "Breakfast / Main",
-        "calories": 420.0,
-        "protein_g": 28.0,
-        "carbs_g": 52.0,
-        "fat_g": 10.0,
+        "calories": 450.0,
+        "protein_g": 30.0,
+        "carbs_g": 55.0,
+        "fat_g": 8.0,
         "allergens": "beef",
-        "recipe_notes": "Sử dụng bánh phở lứt, nước dùng ít gia vị và hạn chế váng mỡ."
+        "health_tags": "low_fat,high_protein",
+        "recipe_notes": "Made with brown rice noodles, clear vegetable broth, and thin lean beef slices low in saturated fat."
     },
     {
         "id": "recipe_2",
-        "food_name": "Ức Gà Nướng Áp Chảo Cơm Lứt",
-        "category": "Lunch / Dinner",
-        "calories": 480.0,
-        "protein_g": 42.0,
-        "carbs_g": 48.0,
-        "fat_g": 9.0,
+        "food_name": "Pan-Seared Teriyaki Chicken Breast with Brown Rice & Broccoli",
+        "category": "Lunch / Main",
+        "calories": 520.0,
+        "protein_g": 45.0,
+        "carbs_g": 50.0,
+        "fat_g": 7.0,
         "allergens": "poultry",
-        "recipe_notes": "Ức gà ướp sốt teriyaki nướng áp chảo ăn kèm 1 chén cơm gạo lứt."
+        "health_tags": "low_fat,muscle_gain,low_gi",
+        "recipe_notes": "Teriyaki marinated chicken breast served with steamed brown rice and fresh broccoli."
     },
     {
         "id": "recipe_3",
-        "food_name": "Cá Hồi Áp Chảo Sốt Bơ Tỏi & Măng Tây",
+        "food_name": "Grilled Passion Fruit Salmon & Pan-Seared Asparagus",
         "category": "Dinner / High-Protein",
-        "calories": 520.0,
-        "protein_g": 36.0,
-        "carbs_g": 15.0,
-        "fat_g": 24.0,
+        "calories": 480.0,
+        "protein_g": 38.0,
+        "carbs_g": 18.0,
+        "fat_g": 16.0,
         "allergens": "seafood,fish",
-        "recipe_notes": "Cá hồi áp chảo dồi dào Omega-3, ăn kèm măng tây xào bơ tỏi nhẹ."
+        "health_tags": "omega3,high_protein,heart_healthy",
+        "recipe_notes": "Norwegian salmon rich in Omega-3 to help lower LDL cholesterol, served with olive oil asparagus."
     },
     {
         "id": "recipe_4",
-        "food_name": "Bún Bò Huế Chay Đậu Hũ Mộc Nấm",
+        "food_name": "Vegetarian Bun Bo Hue with Tofu & King Oyster Mushrooms",
         "category": "Lunch / Vegan",
-        "calories": 380.0,
-        "protein_g": 18.0,
-        "carbs_g": 56.0,
-        "fat_g": 8.0,
+        "calories": 390.0,
+        "protein_g": 20.0,
+        "carbs_g": 58.0,
+        "fat_g": 6.0,
         "allergens": "soy",
-        "recipe_notes": "Nước dùng sả ớt ngọt tự nhiên từ củ quả, đậu hũ chiên không dầu & nấm đùi gà."
+        "health_tags": "vegan,heart_healthy,low_fat",
+        "recipe_notes": "Naturally sweetened lemongrass broth with air-fried tofu and fresh mushrooms."
     },
     {
         "id": "recipe_5",
-        "food_name": "Salad Tôm Nướng Trái Bơ Dầu Oliu",
-        "category": "Lunch / Slim-Fit",
-        "calories": 350.0,
-        "protein_g": 26.0,
-        "carbs_g": 12.0,
-        "fat_g": 18.0,
+        "food_name": "Grilled Tiger Prawn & Avocado Salad with Lemon Olive Oil Dressing",
+        "category": "Lunch / Light",
+        "calories": 360.0,
+        "protein_g": 28.0,
+        "carbs_g": 15.0,
+        "fat_g": 14.0,
         "allergens": "seafood,shrimp",
-        "recipe_notes": "Tôm sú nướng mút sốt chanh leo, ăn kèm xà lách romaine & bơ chín."
+        "health_tags": "low_gi,heart_healthy,slim_fit",
+        "recipe_notes": "Grilled prawns served with romaine lettuce and fresh avocado packed with monounsaturated fats."
     },
     {
         "id": "recipe_6",
-        "food_name": "Sinh Tố Bơ Chuối Protein Whey",
+        "food_name": "Avocado Banana Whey Protein & Oat Smoothie",
         "category": "Snack / Post-Workout",
-        "calories": 280.0,
-        "protein_g": 24.0,
-        "carbs_g": 30.0,
-        "fat_g": 7.0,
+        "calories": 290.0,
+        "protein_g": 25.0,
+        "carbs_g": 32.0,
+        "fat_g": 6.0,
         "allergens": "lactose,milk",
-        "recipe_notes": "1/2 quả bơ chín, 1 quả chuối tiêu tươi & 1 scoop Whey Isolate xay nhuyễn."
+        "health_tags": "high_protein,quick_snack",
+        "recipe_notes": "Blended ripe avocado, banana, and Whey Isolate protein powder for post-workout recovery."
     },
     {
         "id": "recipe_7",
-        "food_name": "Cháo Yến Mạch Thịt Băm Trứng Gà",
+        "food_name": "Salmon & Straw Mushroom Oat Porridge",
         "category": "Breakfast / Light",
-        "calories": 320.0,
-        "protein_g": 22.0,
-        "carbs_g": 38.0,
-        "fat_g": 8.0,
-        "allergens": "egg,pork",
-        "recipe_notes": "Yến mạch nguyên cám nấu mềm với nạc nạc vai băm nhỏ & trứng lòng đào."
+        "calories": 340.0,
+        "protein_g": 24.0,
+        "carbs_g": 40.0,
+        "fat_g": 7.0,
+        "allergens": "fish",
+        "health_tags": "heart_healthy,omega3,low_gi",
+        "recipe_notes": "Whole grain oats high in beta-glucan cooked with fresh salmon and straw mushrooms to reduce LDL cholesterol."
     },
     {
         "id": "recipe_8",
-        "food_name": "Cơm Tấm Sườn Nướng Muối Ớt & Hấp Trứng",
-        "category": "Lunch / Traditional",
-        "calories": 590.0,
+        "food_name": "Steamed Sea Bass with Ginger, Scallions & Dragon Brown Rice",
+        "category": "Lunch / Main",
+        "calories": 460.0,
+        "protein_g": 40.0,
+        "carbs_g": 45.0,
+        "fat_g": 8.0,
+        "allergens": "fish",
+        "health_tags": "low_fat,heart_healthy,low_gi",
+        "recipe_notes": "Lightly steamed sea bass fillet with ginger and scallions, paired with nutrient-dense brown rice."
+    },
+    {
+        "id": "recipe_9",
+        "food_name": "Shredded Chicken, Lotus Seed & Tofu Soup",
+        "category": "Dinner / Light",
+        "calories": 320.0,
+        "protein_g": 30.0,
+        "carbs_g": 25.0,
+        "fat_g": 5.0,
+        "allergens": "poultry,soy",
+        "health_tags": "low_fat,low_calorie,heart_healthy",
+        "recipe_notes": "Cleansing lotus seed and tofu broth with lean shredded chicken breast."
+    },
+    {
+        "id": "recipe_10",
+        "food_name": "Lean Beef & Garlic Sesame Brown Rice Noodle Bowl",
+        "category": "Lunch / Main",
+        "calories": 490.0,
         "protein_g": 35.0,
-        "carbs_g": 65.0,
-        "fat_g": 18.0,
-        "allergens": "pork,egg",
-        "recipe_notes": "Sườn heo nạc nướng mật ong, ăn kèm dưa chuột tươi & dưa góp giảm mỡ."
+        "carbs_g": 52.0,
+        "fat_g": 9.0,
+        "allergens": "beef,sesame",
+        "health_tags": "low_gi,high_protein",
+        "recipe_notes": "Sautéed lean beef with garlic and sesame oil, tossed with brown rice noodles and fresh herbs."
+    },
+    {
+        "id": "recipe_11",
+        "food_name": "Organic Omelet Roll with King Oyster Mushrooms & Asparagus",
+        "category": "Breakfast / Quick",
+        "calories": 280.0,
+        "protein_g": 20.0,
+        "carbs_g": 10.0,
+        "fat_g": 12.0,
+        "allergens": "egg",
+        "health_tags": "low_carb,quick_breakfast",
+        "recipe_notes": "Organic eggs pan-seared and rolled with sliced mushrooms and fresh asparagus."
+    },
+    {
+        "id": "recipe_12",
+        "food_name": "Low-Sugar Walnut Almond & Oat Nut Milk",
+        "category": "Snack / Light",
+        "calories": 210.0,
+        "protein_g": 8.0,
+        "carbs_g": 22.0,
+        "fat_g": 9.0,
+        "allergens": "nuts",
+        "health_tags": "heart_healthy,omega3,vegan",
+        "recipe_notes": "Nutrient-rich nut milk providing unsaturated healthy fats to improve blood lipid profile."
     }
 ]
 
 
+def load_genai_modules():
+    try:
+        import google.genai as genai
+        from google.genai import types
+        return genai, types
+    except Exception:
+        import sys
+        import site
+        import importlib
+        importlib.invalidate_caches()
+        if 'google' in sys.modules:
+            google_mod = sys.modules['google']
+            if hasattr(google_mod, '__path__'):
+                site_dirs = list(site.getsitepackages())
+                if hasattr(site, 'getusersitepackages'):
+                    user_site = site.getusersitepackages()
+                    if isinstance(user_site, str):
+                        site_dirs.append(user_site)
+                    elif isinstance(user_site, list):
+                        site_dirs.extend(user_site)
+                for s in site_dirs:
+                    g_dir = os.path.join(s, 'google')
+                    if os.path.exists(g_dir) and g_dir not in google_mod.__path__:
+                        google_mod.__path__.append(g_dir)
+        try:
+            import google.genai as genai
+            from google.genai import types
+            return genai, types
+        except Exception as import_err:
+            raise RuntimeError(
+                f"❌ Không thể nạp thư viện google-genai trên máy chủ backend. "
+                f"Vui lòng tắt uvicorn (Press CTRL+C) và bật lại (python -m uvicorn app.main:app --reload --port 8000). Chi tiết: {str(import_err)}"
+            )
+
 def retrieve_relevant_foods(
     target_calories_per_meal: float,
     allergens_to_exclude: List[str],
+    health_condition: str = "",
     top_k: int = 4
 ) -> List[Dict[str, Any]]:
     """
-    Retrieves recipes filtered by medical safety (allergens) and calorie targets.
+    Retrieves recipes filtered by medical safety (allergens), health conditions, and calorie targets.
+    Dynamically shuffles matching recipes for variety on every request.
     """
-    matched = []
+    candidates = []
+    condition_lower = health_condition.lower()
+    is_high_fat = "high blood fat" in condition_lower or "mỡ máu" in condition_lower
+
     for r in SEED_RECIPES:
         allergens = [a.strip().lower() for a in r["allergens"].split(",") if a.strip()]
-        # Allergy Filter check
         has_allergen = any(
             ex.strip().lower() in allergens
             for ex in allergens_to_exclude
@@ -123,15 +219,18 @@ def retrieve_relevant_foods(
         if has_allergen:
             continue
 
-        matched.append(r)
-        if len(matched) >= top_k:
-            break
+        # Filter out high saturated fats if user has high blood fat condition
+        if is_high_fat and r.get("fat_g", 0) > 15.0 and "omega3" not in r.get("health_tags", ""):
+            continue
 
-    if not matched:
-        # Fallback to non-allergen items if all excluded
-        matched = [r for r in SEED_RECIPES if not any(ex.strip().lower() in r["allergens"] for ex in allergens_to_exclude)][:top_k]
-    
-    return matched if matched else SEED_RECIPES[:top_k]
+        candidates.append(r)
+
+    if not candidates:
+        candidates = SEED_RECIPES.copy()
+
+    # Shuffle for dynamic diversity on each request
+    random.shuffle(candidates)
+    return candidates[:top_k]
 
 
 def generate_rag_meal_plan(
@@ -148,7 +247,6 @@ def generate_rag_meal_plan(
     pref = user_profile.dietary_preferences if (user_profile and hasattr(user_profile, 'dietary_preferences') and user_profile.dietary_preferences) else "Không có dị ứng đặc biệt"
     goal = user_profile.goal if (user_profile and hasattr(user_profile, 'goal') and user_profile.goal) else "weight_loss"
 
-
     # Extract allergens
     allergens_to_exclude = []
     pref_lower = pref.lower()
@@ -159,93 +257,123 @@ def generate_rag_meal_plan(
 
     # 1. RETRIEVAL STEP
     meal_cal_target = remaining_cal / 3.0
-    retrieved_foods = retrieve_relevant_foods(meal_cal_target, allergens_to_exclude, top_k=4)
+    retrieved_foods = retrieve_relevant_foods(meal_cal_target, allergens_to_exclude, health_condition=pref, top_k=4)
 
-    # 2. GENERATION STEP (LLM or Dynamic Generator)
-    if GEMINI_API_KEY:
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=GEMINI_API_KEY)
-            model_name = "gemini-1.5-pro" if plan_tier == "pro" else "gemini-1.5-flash"
-            model = genai.GenerativeModel(model_name)
+    # 2. GENERATION STEP (Real LLM via Google GenAI)
+    if not GEMINI_API_KEY:
+        raise RuntimeError("❌ GEMINI_API_KEY chưa được cấu hình trong môi trường backend.")
 
-            prompt = f"""
-            Bạn là Chuyên gia Dinh dưỡng Y khoa Việt Nam.
-            Hãy tạo thực đơn RAG AI cho người dùng với:
-            - Mục tiêu: {goal}
-            - Calo còn lại: {remaining_cal} kcal (TDEE: {tdee})
-            - Yêu cầu đặc biệt: {pref}
-            - Gói dịch vụ: {plan_tier.upper()}
+    genai, types = load_genai_modules()
 
-            DANH SÁCH MÓN ĂN CHUẨN TỪ RAG VECTOR SEARCH:
-            {json.dumps(retrieved_foods, ensure_ascii=False, indent=2)}
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        model_name = "gemini-3.5-flash-lite"
 
-            Trả về định dạng JSON thuần túy:
+        prompt = f"""
+        You are an international Clinical Medical Nutrition Specialist.
+        Generate a COMPLETELY NEW, DIVERSE, AND PERSONALIZED RAG AI Meal Plan for the user in ENGLISH based on:
+        - Fitness Goal: {goal.upper()}
+        - Daily Calorie Target: {target_cal:.1f} kcal (TDEE: {tdee:.1f} kcal)
+        - Remaining Calories to Distribute for 4 Meals: {remaining_cal:.1f} kcal
+        - Health Conditions & Dietary Preferences: "{pref}"
+        - Subscription Plan Tier: {plan_tier.upper()}
+
+        CANDIDATE RECIPES FROM RAG VECTOR DATABASE:
+        {json.dumps(retrieved_foods, ensure_ascii=False, indent=2)}
+
+        CRITICAL MEDICAL & NUTRITION REQUIREMENTS:
+        1. LANGUAGE: ALL TEXT IN THE JSON RESPONSE MUST BE WRITTEN IN ENGLISH (plan_title, meal_label, meal_name, portion, recipe_notes, summary_advice, grocery_list).
+        2. CALORIE ALLOCATION: Distribute 4 meals (breakfast, lunch, dinner, snack) such that the TOTAL CALORIES OF ALL 4 MEALS EQUAL APPROXIMATELY {remaining_cal:.1f} kcal (e.g., Breakfast ~25%, Lunch ~35%, Dinner ~30%, Snack ~10%).
+        3. MEDICAL CONDITION SPECIAL CARE FOR "{pref}":
+           - IF "high blood fat" / hyperlipidemia: Prioritize soluble fiber (oats, brown rice, green vegetables), Omega-3 rich fish (salmon, sea bass), avocados/olive oil; strictly AVOID saturated animal fats, lard, or fried foods. Provide accurate clinical medical advice in "summary_advice".
+        4. CREATIVITY: Create fresh, innovative meal names and portions every single time. Do not reuse static template numbers.
+
+        Return strictly valid JSON matching this exact structure:
+        {{
+          "plan_title": "✨ Personalized RAG AI Meal Plan",
+          "target_calories": {remaining_cal:.1f},
+          "summary_advice": "<Detailed personalized clinical medical advice in English>",
+          "meals": [
             {{
-              "plan_title": "Thực đơn Cá nhân hóa RAG AI",
-              "target_calories": {remaining_cal},
-              "summary_advice": "Lời khuyên dinh dưỡng chuẩn y khoa...",
-              "meals": [
-                {{
-                  "meal_type": "breakfast | lunch | dinner | snack",
-                  "meal_name": "Tên món ăn",
-                  "portion": "Định lượng (ví dụ: 1 tô / 200g)",
-                  "calories": 400,
-                  "protein_g": 30,
-                  "carbs_g": 45,
-                  "fat_g": 10,
-                  "recipe_notes": "Ghi chú chế biến tóm tắt"
-                }}
-              ]
-              {', "grocery_list": ["500g Ức gà tươi", "1kg Bông cải xanh", "1 vỉ Trứng gà"]' if plan_tier == 'pro' else ''}
+              "meal_type": "breakfast",
+              "meal_label": "Breakfast",
+              "meal_name": "<Creative breakfast dish name in English>",
+              "portion": "<Specific portion in English, e.g., 1 Bowl (350g)>",
+              "calories": 500.0,
+              "protein_g": 30.0,
+              "carbs_g": 60.0,
+              "fat_g": 10.0,
+              "recipe_notes": "<Clinical cooking & medical note in English>"
+            }},
+            {{
+              "meal_type": "lunch",
+              "meal_label": "Lunch",
+              "meal_name": "<Creative lunch dish name in English>",
+              "portion": "<Specific portion in English>",
+              "calories": 750.0,
+              "protein_g": 45.0,
+              "carbs_g": 80.0,
+              "fat_g": 15.0,
+              "recipe_notes": "<Clinical cooking & medical note in English>"
+            }},
+            {{
+              "meal_type": "dinner",
+              "meal_label": "Dinner",
+              "meal_name": "<Creative dinner dish name in English>",
+              "portion": "<Specific portion in English>",
+              "calories": 650.0,
+              "protein_g": 40.0,
+              "carbs_g": 65.0,
+              "fat_g": 12.0,
+              "recipe_notes": "<Clinical cooking & medical note in English>"
+            }},
+            {{
+              "meal_type": "snack",
+              "meal_label": "Snack",
+              "meal_name": "<Creative snack dish name in English>",
+              "portion": "<Specific portion in English>",
+              "calories": 337.0,
+              "protein_g": 15.0,
+              "carbs_g": 40.0,
+              "fat_g": 8.0,
+              "recipe_notes": "<Clinical cooking & medical note in English>"
             }}
-            """
+          ]
+          {', "grocery_list": ["<Item 1 in English>", "<Item 2>", "<Item 3>"]' if plan_tier in ['pro', 'admin'] else ''}
+        }}
+        """
 
-            response = model.generate_content(
-                prompt,
-                generation_config={"response_mime_type": "application/json"}
+        def safe_console_print(header: str, content: str):
+            try:
+                out = f"\n==================================================\n[{header}]:\n{content}\n==================================================\n"
+                try:
+                    print(out, flush=True)
+                except Exception:
+                    import sys
+                    sys.stdout.buffer.write(out.encode('utf-8', errors='replace'))
+                    sys.stdout.buffer.flush()
+            except Exception:
+                pass
+
+        # Log Request Prompt
+        logger.info("=== [GEMINI RAG REQUEST PROMPT] ===\n%s", prompt)
+        safe_console_print("GEMINI RAG REQUEST PROMPT", prompt)
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
             )
-            return json.loads(response.text)
-        except Exception as e:
-            logger.warning("Gemini API call error: %s. Using local RAG synthesis fallback.", e)
+        )
 
-    # LOCAL RAG SYNTHESIS FALLBACK (Ensures 100% uptime & zero downtime)
-    meals = []
-    meal_types = [("breakfast", "Bữa Sáng"), ("lunch", "Bữa Trưa"), ("dinner", "Bữa Tối"), ("snack", "Bữa Phụ")]
-    total_plan_cal = 0.0
+        # Log Raw Response Text
+        logger.info("=== [GEMINI RAG RESPONSE RAW TEXT] ===\n%s", response.text)
+        safe_console_print("GEMINI RAG RESPONSE RAW TEXT", response.text)
 
-    for i, (m_type, m_label) in enumerate(meal_types):
-        recipe = retrieved_foods[i % len(retrieved_foods)]
-        cal = round(recipe["calories"], 1)
-        total_plan_cal += cal
-        meals.append({
-            "meal_type": m_type,
-            "meal_label": m_label,
-            "meal_name": recipe["food_name"],
-            "portion": "1 Phần chuẩn (350-400g)",
-            "calories": cal,
-            "protein_g": recipe["protein_g"],
-            "carbs_g": recipe["carbs_g"],
-            "fat_g": recipe["fat_g"],
-            "recipe_notes": recipe["recipe_notes"]
-        })
+        parsed = json.loads(response.text)
+        return parsed
+    except Exception as e:
+        logger.error("Gemini API call error: %s", e)
+        raise RuntimeError(f"❌ Lỗi kết nối Google Gemini API: {str(e)}")
 
-    grocery_list = [
-        "500g Ức gà philê tươi",
-        "300g Cá hồi Na Uy áp chảo",
-        "1 Cây măng tây xanh",
-        "1kg Gạo lứt huyết rồng",
-        "1 Vỉ trứng gà Organic (10 quả)",
-        "2 Quả bơ chín Sáp",
-        "1 Túi yến mạch nguyên cám 500g"
-    ] if plan_tier in ["pro", "admin"] else []
-
-    advice_tier = "Ultra Medical & Grocery Planning" if plan_tier in ["pro", "admin"] else "Basic Smart Nutrition"
-
-    return {
-        "plan_title": f"Thực đơn Cá nhân hóa RAG AI ({advice_tier})",
-        "target_calories": round(remaining_cal, 1),
-        "summary_advice": f"Thực đơn được RAG truy xuất từ CSDL Món ăn Việt Nam chuẩn. Đã tối ưu cho mục tiêu {goal.upper()} ({remaining_cal:.0f} kcal) và tự động lọc an toàn các thành phần dị ứng ({pref}).",
-        "meals": meals,
-        "grocery_list": grocery_list
-    }

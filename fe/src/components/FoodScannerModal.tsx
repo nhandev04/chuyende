@@ -94,7 +94,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
             setEditFat(aiRes.fat_g);
         } catch (error: any) {
             // Display error message when detection fails
-            const errorMsg = error.message || "Không nhận diện được đồ ăn";
+            const errorMsg = error.message || "Food could not be recognized";
             setScanError(errorMsg);
             setResult(null);
         } finally {

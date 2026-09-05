@@ -102,7 +102,10 @@ def get_pro_daily_meal_recommendations(user_id: int, db: Session = Depends(get_d
         )
 
     profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
-    return generate_pro_daily_meal_plan(profile, db)
+    try:
+        return generate_pro_daily_meal_plan(profile, db)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
 @router.get("/recommendations/{user_id}")
 def get_diet_recommendation(user_id: int, db: Session = Depends(get_db)):
@@ -110,6 +113,7 @@ def get_diet_recommendation(user_id: int, db: Session = Depends(get_db)):
     profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
     target_cal = profile.daily_calorie_target if profile else 2000.0
     goal = profile.goal if profile else "weight_loss"
+    pref = profile.dietary_preferences if profile else ""
 
     from datetime import datetime
     today_start = datetime.combine(datetime.utcnow().date(), datetime.min.time())
@@ -118,8 +122,19 @@ def get_diet_recommendation(user_id: int, db: Session = Depends(get_db)):
         FoodLog.logged_at >= today_start
     ).all()
     consumed_cal = sum(l.calories for l in today_logs)
+    consumed_macros = {
+        "protein_g": sum(l.protein_g for l in today_logs),
+        "carbs_g": sum(l.carbs_g for l in today_logs),
+        "fat_g": sum(l.fat_g for l in today_logs)
+    }
 
-    return generate_diet_recommendations(consumed_cal, target_cal, goal)
+    return generate_diet_recommendations(
+        consumed_calories=consumed_cal,
+        target_calories=target_cal,
+        goal=goal,
+        consumed_macros=consumed_macros,
+        dietary_preferences=pref
+    )
 
 @router.post("/report/{user_id}")
 def create_ai_report(user_id: int, report_in: AIReportCreate, db: Session = Depends(get_db)):
@@ -169,7 +184,10 @@ def create_rag_meal_plan(user_id: int, db: Session = Depends(get_db)):
     consumed_today = sum(l.calories for l in today_logs)
 
     plan_tier = user.plan if user.role != "admin" else "pro"
-    rag_res = generate_rag_meal_plan(profile, consumed_today, plan_tier)
+    try:
+        rag_res = generate_rag_meal_plan(profile, consumed_today, plan_tier)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
     # Save to database
     db_plan = RAGMealPlan(

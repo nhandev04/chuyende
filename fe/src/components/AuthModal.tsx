@@ -43,7 +43,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       }
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Đã xảy ra lỗi. Vui lòng kiểm tra lại thông tin.');
+      setError(err.message || 'An error occurred. Please verify your information and try again.');
     } finally {
       setLoading(false);
     }

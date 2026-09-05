@@ -227,7 +227,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="min-h-[calc(100vh-140px)]">
+      <main className="min-h-[calc(100vh-140px)] pb-28 pt-2 sm:pb-12 sm:pt-4 px-2 sm:px-4">
         {activeTab === 'dashboard' && (
           <Dashboard
             user={user}

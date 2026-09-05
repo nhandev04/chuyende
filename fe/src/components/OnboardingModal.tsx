@@ -112,7 +112,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 setAiBodyAnalysis(null);
                 setAiError(
                     err?.response?.data?.detail ||
-                        "❌ Không nhận diện được cơ thể từ ảnh này. Vui lòng chọn ảnh toàn thân rõ ràng, chụp thẳng từ đầu tới chân.",
+                        "❌ Could not detect body pose from this photo. Please upload a clear full-body photo taken from head to toe.",
                 );
             } finally {
                 setAnalyzingPhoto(false);

@@ -168,32 +168,75 @@ def analyze_food_fallback(text_prompt: Optional[str] = None, filename: Optional[
 def generate_diet_recommendations(
     consumed_calories: float,
     target_calories: float,
-    goal: str
+    goal: str = "weight_loss",
+    consumed_macros: Optional[Dict[str, float]] = None,
+    dietary_preferences: str = ""
 ) -> Dict[str, Any]:
     """
-    Generate personalized diet recommendations based on caloric deficit/surplus.
+    Generate personalized diet recommendations based on caloric deficit/surplus,
+    macro distribution analysis, health conditions, and RAG recipe library.
     """
     diff = consumed_calories - target_calories
+    remaining_cal = max(0.0, target_calories - consumed_calories)
+    
+    # 1. Macro Target Estimation
+    target_protein = (target_calories * 0.30) / 4.0
+    
+    consumed_p = consumed_macros.get("protein_g", 0.0) if consumed_macros else 0.0
+    
+    # 2. Determine Caloric Status & Advice
+    advice_parts = []
     
     if diff > 300:
         status = "over_budget"
-        advice = f"⚠️ You have exceeded your daily target by {int(diff)} kcal today. Consider a 30-minute walk or reducing evening dinner portions."
-        suggested_meals = [
-            {"meal": "Dinner", "suggestion": "Grilled Chicken Salad without heavy dressing or 1 Whey Protein Shake", "calories": 200},
-            {"meal": "Snack", "suggestion": "Warm Green Tea or Pure Water", "calories": 0}
-        ]
+        advice_parts.append(f"⚠️ You have exceeded your daily target by {int(diff)} kcal today. Consider a 30-minute light walk or choosing an ultra-light evening meal.")
     elif diff < -500:
         status = "under_budget"
-        advice = f"❌ You are {int(abs(diff))} kcal below your minimum threshold. Fuel up with nutrient-dense foods to prevent hypoglycemia."
-        suggested_meals = [
-            {"meal": "Dinner", "suggestion": "Pan-seared chicken breast with brown rice + 1 bowl of lean beef soup", "calories": 480},
-            {"meal": "Snack", "suggestion": "1 Banana + 30g Almonds", "calories": 180}
-        ]
+        advice_parts.append(f"❌ You are {int(abs(diff))} kcal below your minimum threshold. Fuel up with nutrient-dense meals to prevent hypoglycemia and muscle breakdown.")
     else:
         status = "on_track"
-        advice = "✅ Excellent caloric balance! Maintain this habit to achieve your fitness goals right on schedule."
+        advice_parts.append("✅ Excellent caloric balance! You are maintaining a healthy energy intake right on target.")
+        
+    # Macro Insights (Protein focus)
+    if consumed_p < target_protein * 0.5 and remaining_cal > 150:
+        advice_parts.append(f"💡 Protein Boost Recommended: You have consumed {int(consumed_p)}g / {int(target_protein)}g protein today. Prioritize lean protein (chicken, fish, eggs, tofu).")
+    
+    # Health Conditions (e.g. high blood fat)
+    pref_lower = (dietary_preferences or "").lower()
+    if "high blood fat" in pref_lower or "mỡ máu" in pref_lower:
+        advice_parts.append("🫀 Medical Care (High Blood Fat): Prioritize soluble fiber (oats, brown rice) and Omega-3 rich fish (salmon, sea bass); strictly limit saturated animal fats and fried foods.")
+    elif "weight_loss" in (goal or "").lower():
+        advice_parts.append("🎯 Weight Loss Focus: Prioritize high-fiber vegetables and lean protein to enhance satiety while maintaining a mild caloric deficit.")
+    elif "muscle_gain" in (goal or "").lower():
+        advice_parts.append("💪 Muscle Gain Focus: Ensure sufficient protein surplus and complex carbohydrates to support post-workout muscle synthesis.")
+
+    full_advice = " ".join(advice_parts)
+    
+    # 3. Dynamic Candidate Meal Selection from RAG Recipe Library
+    try:
+        from app.services.rag_engine import retrieve_relevant_foods
+        allergens = []
+        for kw in ["hải sản", "seafood", "tôm", "cá", "fish", "đậu nành", "soy", "trừng", "egg", "sữa", "milk"]:
+            if kw in pref_lower:
+                allergens.append(kw)
+                
+        meal_target = max(250.0, remaining_cal / 2.0)
+        recipes = retrieve_relevant_foods(meal_target, allergens, health_condition=dietary_preferences, top_k=2)
+        
+        suggested_meals = []
+        meal_types = ["Dinner / Main", "Snack / Light"]
+        for idx, r in enumerate(recipes):
+            m_label = meal_types[idx] if idx < len(meal_types) else "Suggested Meal"
+            suggested_meals.append({
+                "meal": m_label,
+                "suggestion": f"{r.get('food_name')} ({r.get('category', 'Healthy')})",
+                "calories": int(r.get("calories", 350))
+            })
+    except Exception as e:
+        logger.warning(f"Fallback meal suggestions used: {e}")
         suggested_meals = [
-            {"meal": "Dinner", "suggestion": "Pan-seared Salmon + Steamed Asparagus + 1/2 bowl of brown rice", "calories": 400}
+            {"meal": "Dinner", "suggestion": "Pan-seared Salmon with Steamed Asparagus & Brown Rice", "calories": 400},
+            {"meal": "Snack", "suggestion": "Avocado Banana Whey Protein Smoothie", "calories": 250}
         ]
         
     return {
@@ -201,7 +244,7 @@ def generate_diet_recommendations(
         "diff_calories": round(diff, 1),
         "consumed_calories": round(consumed_calories, 1),
         "target_calories": round(target_calories, 1),
-        "remaining_calories": round(target_calories - consumed_calories, 1),
-        "advice": advice,
+        "remaining_calories": round(remaining_cal, 1),
+        "advice": full_advice,
         "suggested_meals": suggested_meals
     }

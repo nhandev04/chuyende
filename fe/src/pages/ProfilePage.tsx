@@ -210,7 +210,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 <strong className="text-amber-400">Unlimited System Access (No Expiration)</strong>
               ) : subStatus?.subscription_expires_at ? (
                 <>
-                  Valid until: <strong className="text-emerald-400">{new Date(subStatus.subscription_expires_at).toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric' })}</strong>
+                  Valid until: <strong className="text-emerald-400">{new Date(subStatus.subscription_expires_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</strong>
                 </>
               ) : (
                 <span className="text-slate-400">Lifetime Standard Free Tier (No expiration)</span>

@@ -357,7 +357,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
                       <span className={textSub}>→</span>
                       <span className="font-bold text-emerald-500">Actual: "{report.user_correction}"</span>
                     </div>
-                    <p className={`text-[11px] mt-1 ${textSub}`}>User ID: #{report.user_id} • Time: {new Date(report.created_at).toLocaleDateString('vi-VN')}</p>
+                    <p className={`text-[11px] mt-1 ${textSub}`}>User ID: #{report.user_id} • Time: {new Date(report.created_at).toLocaleDateString('en-US')}</p>
                   </div>
                 </div>
 
