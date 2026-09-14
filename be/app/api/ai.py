@@ -169,7 +169,7 @@ def create_rag_meal_plan(user_id: int, db: Session = Depends(get_db)):
     if user.role != "admin" and user.plan not in ["plus", "pro"]:
         raise HTTPException(
             status_code=403,
-            detail="🔒 'RAG AI Smart Meal Planner' feature requires Plus or Pro subscription tier."
+            detail="🔒 'AI Smart Meal Planner' feature requires Plus or Pro subscription tier."
         )
 
     profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
@@ -194,7 +194,7 @@ def create_rag_meal_plan(user_id: int, db: Session = Depends(get_db)):
         user_id=user_id,
         plan_tier=plan_tier,
         target_calories=rag_res.get("target_calories", 2000.0),
-        plan_title=rag_res.get("plan_title", "RAG Meal Plan"),
+        plan_title=rag_res.get("plan_title", "Personalized AI Smart Meal Plan"),
         summary_advice=rag_res.get("summary_advice", ""),
         meal_data=json.dumps(rag_res.get("meals", []), ensure_ascii=False),
         grocery_list=json.dumps(rag_res.get("grocery_list", []), ensure_ascii=False)

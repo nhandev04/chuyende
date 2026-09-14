@@ -48,7 +48,7 @@ def add_food_to_db(payload: FoodDatabaseCreate, db: Session = Depends(get_db)):
 def delete_food_from_db(food_id: int, db: Session = Depends(get_db)):
     item = db.query(FoodDatabase).filter(FoodDatabase.id == food_id).first()
     if not item:
-        raise HTTPException(status_code=404, detail="Food item not found in Ground-Truth DB")
+        raise HTTPException(status_code=404, detail="Food item not found in standard food library")
     db.delete(item)
     db.commit()
     return {"message": f"Successfully deleted food item #{food_id} ({item.food_name})"}

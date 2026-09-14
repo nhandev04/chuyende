@@ -56,9 +56,9 @@ def get_subscription_plans():
                 "price_display": "~$1.00 / month (25,000 VND)",
                 "features": [
                     "All Standard tier features",
-                    "⚡ AI Food Image Scanning (YOLOv8)",
+                    "⚡ AI Food Photo Scanning",
                     "Automated Calorie, Protein, Carbs, Fat analysis",
-                    "Ground-Truth food database access"
+                    "Standard food nutrition library access"
                 ],
                 "badge": "Most Popular",
                 "is_current_default": False
@@ -70,7 +70,7 @@ def get_subscription_plans():
                 "price_display": "~$2.00 / month (50,000 VND)",
                 "features": [
                     "All Plus tier features",
-                    "👑 Full-body AI Pose Analysis (YOLO Pose)",
+                    "👑 Smart Full-Body Fitness & Posture Analysis",
                     "10-Level BMI Scale & Biometric advice",
                     "🥗 Daily AI Recommended Meal Plan",
                     "Priority support & Detailed nutrition reports"

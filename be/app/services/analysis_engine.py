@@ -144,7 +144,7 @@ def analyze_food_fallback(text_prompt: Optional[str] = None, filename: Optional[
                     "fat_g": round(item.fat_per_100g * ratio, 1),
                     "confidence_score": 0.96,
                     "detected_items": [item.food_name, "Standard Seasoning"],
-                    "advice": f"Matched ground-truth item in library ({item.category}). Balanced macronutrient profile."
+                    "advice": f"Verified with nutrition library ({item.category}). Balanced macronutrient profile."
                 }
     except Exception as e:
         logger.warning(f"Error querying FoodDatabase: {e}")

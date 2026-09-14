@@ -88,7 +88,7 @@ export const WeightLogModal: React.FC<WeightLogModalProps> = ({
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-sm flex items-center justify-center space-x-1.5"
           >
             <Check className="w-4 h-4" />
-            <span>Save Weight Entry</span>
+            <span>{loading ? "Saving..." : "Save Weight Entry"}</span>
           </button>
         </form>
 

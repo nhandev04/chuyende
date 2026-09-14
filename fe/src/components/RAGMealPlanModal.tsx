@@ -44,7 +44,7 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
       const data = await api.generateRAGMealPlan(user.user_id);
       setRagData(data);
     } catch (err: any) {
-      alert(err.message || "Failed to generate RAG meal plan.");
+      alert(err.message || "Failed to generate AI meal plan.");
     } finally {
       setLoading(false);
     }
@@ -74,10 +74,9 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className={`border rounded-3xl max-w-2xl w-full p-6 text-white shadow-2xl relative max-h-[90vh] overflow-y-auto ${
-        isDark ? 'bg-slate-900 border-slate-800' : 'bg-white text-slate-900 border-slate-200'
-      }`}>
-        
+      <div className={`border rounded-3xl max-w-2xl w-full p-6 text-white shadow-2xl relative max-h-[90vh] overflow-y-auto ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white text-slate-900 border-slate-200'
+        }`}>
+
         {/* Header */}
         <div className={`flex items-center justify-between border-b pb-4 mb-4 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
           <div className="flex items-center space-x-3">
@@ -86,21 +85,20 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h2 className={`font-black text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>RAG AI Smart Meal Planner</h2>
-                <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-black border ${
-                  isPro
+                <h2 className={`font-black text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>AI Smart Meal Planner</h2>
+                <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-black border ${isPro
                     ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
                     : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                }`}>
-                  {isPro ? '👑 PRO RAG ULTRA' : '⚡ PLUS RAG'}
+                  }`}>
+                  {isPro ? '👑 PRO AI MEALS' : '⚡ PLUS AI MEALS'}
                 </span>
               </div>
               <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Personalized nutrition retrieved from Ground-Truth Vietnamese Food Vector Library
+                Personalized nutrition plans customized to your health and calorie goals
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition">
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Close">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -111,24 +109,24 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
             <div className="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
               <Lock className="w-7 h-7" />
             </div>
-            <h3 className="font-extrabold text-base text-rose-200">🔒 RAG Smart Nutrition Locked</h3>
+            <h3 className="font-extrabold text-base text-rose-200">🔒 AI Smart Meal Planner Locked</h3>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-              RAG Vector Recipe Retrieval, Medical Allergy Safety Filtering, and Auto Grocery Shopping List feature requires a <strong className="text-emerald-400">Plus</strong> or <strong className="text-amber-400">Pro</strong> subscription.
+              Personalized daily meal suggestions, allergy-safe recipe matching, and automated grocery shopping lists require a <strong className="text-emerald-400">Plus</strong> or <strong className="text-amber-400">Pro</strong> subscription.
             </p>
             <button
               onClick={() => { onClose(); onOpenSubscription(); }}
               className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-transform hover:scale-[1.02]"
             >
-              Upgrade Subscription Tier to Unlock RAG →
+              Upgrade Your Subscription to Unlock AI Meal Plans →
             </button>
           </div>
         ) : (
           <div className="space-y-4">
-            
+
             {/* Generate Trigger / Re-generate Header Bar */}
             <div className="flex items-center justify-between bg-slate-800/40 p-3.5 rounded-2xl border border-slate-700/50">
               <span className="text-xs text-slate-300 font-semibold">
-                {ragData ? `Target: ${ragData.target_calories || 2000} kcal/day` : 'Ready to retrieve personalized meal recipes.'}
+                {ragData ? `Target: ${ragData.target_calories || 2000} kcal/day` : 'Ready to generate your personalized meal plan.'}
               </span>
               <button
                 onClick={handleGenerate}
@@ -136,7 +134,7 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
                 className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:scale-105 transition flex items-center space-x-1.5"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                <span>{loading ? "RAG Vector Searching..." : ragData ? "Re-generate Meal Plan" : "✨ Generate RAG Meal Plan"}</span>
+                <span>{loading ? "AI Generating Plan..." : ragData ? "Generate New Plan" : "✨ Generate AI Meal Plan"}</span>
               </button>
             </div>
 
@@ -144,9 +142,9 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
             {!ragData && !loading && (
               <div className="text-center py-10 space-y-3">
                 <ChefHat className="w-14 h-14 text-emerald-400 mx-auto animate-pulse" />
-                <h4 className="font-extrabold text-sm text-white">Click "Generate RAG Meal Plan" above</h4>
+                <h4 className="font-extrabold text-sm text-white">Click "Generate AI Meal Plan" above</h4>
                 <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  RAG Engine will retrieve Ground-Truth recipes, filter out allergens, and synthesize your custom plan.
+                  Our AI will tailor recipes to your health profile, filter out any allergens, and create your custom daily meal plan.
                 </p>
               </div>
             )}
@@ -154,11 +152,11 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
             {/* Display RAG Meal Plan Content */}
             {ragData && (
               <div className="space-y-4">
-                
+
                 {/* Advice Card */}
                 {ragData.summary_advice && (
                   <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs text-emerald-300 leading-relaxed">
-                    💡 <strong>RAG Nutrition Advice:</strong> {ragData.summary_advice}
+                    💡 <strong>AI Nutrition Advice:</strong> {ragData.summary_advice}
                   </div>
                 )}
 

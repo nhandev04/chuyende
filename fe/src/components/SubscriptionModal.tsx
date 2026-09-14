@@ -59,44 +59,44 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   const plans: SubscriptionPlan[] = [
     {
       id: 'standard',
-      name: 'Standard (Free Tier)',
+      name: 'Standard (Free Plan)',
       price_vnd: 0,
       price_display: '$0 / month',
       badge: 'Free',
       is_current_default: true,
       features: [
-        'Manual food logging',
+        'Manual food logging & daily journal',
         'Basic weight & BMI tracking',
         'Personal profile management'
       ]
     },
     {
       id: 'plus',
-      name: 'Plus (Food Scanner Tier)',
+      name: 'Plus (Smart Food Scanner)',
       price_vnd: 25000,
       price_display: '~$1.00 / month (25,000 VND)',
       badge: 'Most Popular',
       is_current_default: false,
       features: [
-        'All Standard tier features',
-        '⚡ AI Food Image Scanning (YOLOv8)',
-        'Automated Calorie, Protein, Carbs, Fat analysis',
-        'Ground-Truth food database access'
+        'All Standard plan features',
+        '⚡ Instant AI Food Photo Scanning',
+        'Automatic Calorie, Protein, Carbs, & Fat analysis',
+        'Extensive food nutrition library'
       ]
     },
     {
       id: 'pro',
-      name: 'Pro (AI Expert Tier)',
+      name: 'Pro (AI Personal Coach)',
       price_vnd: 50000,
       price_display: '~$2.00 / month (50,000 VND)',
-      badge: 'Premium Exclusive',
+      badge: 'All Features Included',
       is_current_default: false,
       features: [
-        'All Plus tier features',
-        '👑 Full-body AI Pose Analysis (YOLO Pose)',
-        '10-Level BMI Scale & Biometric advice',
-        '🥗 Daily AI Recommended Meal Plan',
-        'Priority support & Detailed nutrition reports'
+        'All Plus plan features',
+        '👑 Smart Full-Body Posture & Fitness Analysis',
+        'In-depth body shape & health evaluation',
+        '🥗 Daily Personalized AI Meal Plans',
+        'Automatic grocery shopping lists & priority support'
       ]
     }
   ];
@@ -117,13 +117,13 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             <X className="w-6 h-6" />
           </button>
 
-          
+
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-semibold uppercase tracking-wider mb-2">
-            <Sparkles className="w-4 h-4 text-amber-300" /> AI Services & Pricing Matrix
+            <Sparkles className="w-4 h-4 text-amber-300" /> Subscription Plans
           </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold">Upgrade Your HealthLens AI Experience</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold">Upgrade Your HealthLens Experience</h2>
           <p className="text-sm md:text-base text-emerald-100 mt-2 max-w-xl mx-auto">
-            Select the right plan to unlock food computer vision & comprehensive body silhouette analysis.
+            Choose the plan that fits your lifestyle. Unlock instant food scanning and AI-powered personalized meal planning.
           </p>
         </div>
 
@@ -149,23 +149,21 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             return (
               <div
                 key={plan.id}
-                className={`relative flex flex-col justify-between p-6 rounded-2xl border transition-all duration-200 ${
-                  isCurrent
+                className={`relative flex flex-col justify-between p-6 rounded-2xl border transition-all duration-200 ${isCurrent
                     ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 shadow-md ring-2 ring-emerald-500'
                     : isPro
-                    ? 'border-indigo-400 dark:border-indigo-600 bg-slate-50 dark:bg-slate-800/80 shadow-lg hover:shadow-indigo-500/10'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300'
-                }`}
+                      ? 'border-indigo-400 dark:border-indigo-600 bg-slate-50 dark:bg-slate-800/80 shadow-lg hover:shadow-indigo-500/10'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300'
+                  }`}
               >
                 {/* Badge */}
                 <div className="flex justify-between items-start mb-4">
-                  <span className={`px-3 py-1 text-xs font-bold rounded-full ${
-                    isPro 
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' 
-                      : isPlus 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                  }`}>
+                  <span className={`px-3 py-1 text-xs font-bold rounded-full ${isPro
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
+                      : isPlus
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                    }`}>
                     {plan.badge}
                   </span>
                   {isCurrent && (
@@ -192,9 +190,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   <ul className="space-y-3 mb-6 text-sm text-slate-600 dark:text-slate-300">
                     {plan.features.map((feat, idx) => (
                       <li key={idx} className="flex items-start gap-2.5">
-                        <CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${
-                          isPro ? 'text-indigo-500' : isPlus ? 'text-emerald-500' : 'text-slate-400'
-                        }`} />
+                        <CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${isPro ? 'text-indigo-500' : isPlus ? 'text-emerald-500' : 'text-slate-400'
+                          }`} />
                         <span>{feat}</span>
                       </li>
                     ))}
@@ -221,14 +218,13 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     <button
                       onClick={() => handleSubscribe(plan.id as 'plus' | 'pro')}
                       disabled={loadingPlan === plan.id}
-                      className={`w-full py-3 px-4 rounded-xl font-bold text-sm text-white shadow-md flex items-center justify-center gap-2 transition active:scale-95 ${
-                        isPro
+                      className={`w-full py-3 px-4 rounded-xl font-bold text-sm text-white shadow-md flex items-center justify-center gap-2 transition active:scale-95 ${isPro
                           ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
                           : 'bg-emerald-600 hover:bg-emerald-700'
-                      }`}
+                        }`}
                     >
                       <CreditCard className="w-4 h-4" />
-                      {loadingPlan === plan.id ? 'Processing Stripe...' : `Upgrade ${plan.id.toUpperCase()} (Stripe)`}
+                      {loadingPlan === plan.id ? 'Processing...' : `Upgrade to ${plan.id.toUpperCase()}`}
                     </button>
                   )}
                 </div>

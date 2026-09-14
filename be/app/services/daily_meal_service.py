@@ -41,7 +41,7 @@ def generate_pro_daily_meal_plan(profile: UserProfile, db: Session) -> Dict[str,
         })
 
     return {
-        "title": "✨ Daily RAG AI Recommended Meal Plan (Pro Tier Exclusive)",
+        "title": "✨ Daily AI Recommended Meal Plan (Pro Tier Exclusive)",
         "target_daily_calories": target_cal,
         "planned_total_calories": sum(m["calories"] for m in meals_formatted),
         "macros_summary": {

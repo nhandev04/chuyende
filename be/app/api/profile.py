@@ -142,7 +142,7 @@ def analyze_body_pose(
         if user and user.role != "admin" and user.plan != "pro":
             raise HTTPException(
                 status_code=403,
-                detail="🔒 Full-body AI body analysis (YOLO Pose) is exclusive to Pro tier users. Please upgrade to Pro tier to unlock."
+                detail="🔒 Smart Full-Body Photo Analysis is exclusive to Pro tier users. Please upgrade to Pro tier to unlock."
             )
 
     temp_path = None
@@ -173,7 +173,7 @@ def analyze_body_pose(
             if pred_height is None or pred_weight is None or confidence <= 0.0:
                 raise HTTPException(
                     status_code=400,
-                    detail="❌ Unable to detect body keypoints from this photo. Please upload a well-lit, uncropped full-body photo."
+                    detail="❌ Unable to detect full-body posture from this photo. Please upload a well-lit, uncropped head-to-toe photo."
                 )
 
         except HTTPException:
@@ -182,19 +182,19 @@ def analyze_body_pose(
             logger.error(f"Error during body pose analysis: {e}")
             raise HTTPException(
                 status_code=400,
-                detail="❌ Unable to process body pose analysis. Please try a clearer head-to-toe photo with adequate lighting."
+                detail="❌ Unable to process body analysis. Please try a clearer head-to-toe photo with adequate lighting."
             )
 
     if pred_height is None or pred_weight is None or confidence <= 0.0:
         raise HTTPException(
             status_code=400,
-            detail="❌ Unable to detect body keypoints from this photo. Please upload a well-lit, uncropped full-body photo."
+            detail="❌ Unable to detect full-body posture from this photo. Please upload a well-lit, uncropped head-to-toe photo."
         )
 
 
     try:
         result = compute_body_metrics(pred_height, pred_weight, age, gender, goal)
-        pose_note = f"\n[YOLO Pose Model: {model_info}, Confidence: {confidence}]" if confidence > 0 else ""
+        pose_note = f"\n[AI Confidence: {int(confidence * 100)}%]" if confidence > 0 else ""
         cloudinary_url = None
         if temp_path:
             from app.services.cloudinary_service import upload_image_to_cloudinary

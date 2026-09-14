@@ -41,7 +41,7 @@ def get_pose_model() -> YOLO:
     except Exception as exc:
         logger.exception("Failed to load YOLO pose model for full-body analysis")
         raise RuntimeError(
-            "YOLO pose model is not ready or could not be loaded. Please check your network or Python environment."
+            "AI body posture analysis service is currently unavailable. Please try again later."
         ) from exc
 
 
@@ -167,7 +167,7 @@ def predict_height_weight_from_body(image_path: str) -> Dict[str, Any]:
             "predicted_height_cm": None,
             "predicted_weight_kg": None,
             "confidence_score": 0.0,
-            "model_info": "YOLO Pose (body proportions)",
+            "model_info": "Smart Body Analysis (proportional estimation)",
             "error": str(exc),
         }
 
@@ -206,7 +206,7 @@ def predict_height_weight_from_body(image_path: str) -> Dict[str, Any]:
                 "predicted_height_cm": height_cm,
                 "predicted_weight_kg": estimated_weight,
                 "confidence_score": round(best_confidence, 3),
-                "model_info": "YOLO Pose (body proportions)",
+                "model_info": "Smart Body Analysis (proportional estimation)",
             }
 
     if best_detection is None:
@@ -214,7 +214,7 @@ def predict_height_weight_from_body(image_path: str) -> Dict[str, Any]:
             "predicted_height_cm": None,
             "predicted_weight_kg": None,
             "confidence_score": 0.0,
-            "model_info": "YOLO Pose (body proportions)",
+            "model_info": "Smart Body Analysis (proportional estimation)",
             "error": "Unable to estimate height: photo does not contain a clear full-body view or camera angle is unsuitable.",
         }
 

@@ -188,7 +188,7 @@ export const api = {
             const res = await client.post(`/ai/rag-meal-plan/${userId}`);
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "🔒 'RAG AI Smart Meal Planner' feature requires Plus or Pro subscription tier.";
+            const message = err.response?.data?.detail || "🔒 'AI Smart Meal Planner' feature requires Plus or Pro subscription tier.";
             throw new Error(message);
         }
     },
@@ -396,7 +396,7 @@ export const api = {
             const res = await client.post("/admin/foods", foodData);
             return res.data;
         } catch (err: any) {
-            const message = err.response?.data?.detail || "Failed to add food item to Ground-Truth DB.";
+            const message = err.response?.data?.detail || "Failed to add food item to standard database.";
             throw new Error(message);
         }
     },

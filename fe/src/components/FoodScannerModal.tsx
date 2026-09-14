@@ -49,7 +49,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                     </div>
                     <h3 className="text-lg font-extrabold text-white">🔒 Plus Tier Required</h3>
                     <p className="text-xs text-slate-300">
-                        AI Food Image Scanning (YOLOv8) is exclusive to Plus & Pro tier users. Upgrade your subscription plan (~$1/mo) to unlock automated food photo scanning!
+                        AI Food Photo Scanning is exclusive to Plus & Pro tier users. Upgrade your subscription plan (~$1/mo) to unlock automated food photo scanning!
                     </p>
                     <button
                         onClick={() => {
@@ -167,11 +167,10 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                             setResult(null);
                             setScanError(null);
                         }}
-                        className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${
-                            mode === "image"
+                        className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${mode === "image"
                                 ? "bg-emerald-500 text-slate-950 shadow-md"
                                 : "text-slate-400 hover:text-white"
-                        }`}
+                            }`}
                     >
                         <Camera className="w-4 h-4" />
                         <span>Capture / Upload Photo</span>
@@ -182,11 +181,10 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                             setResult(null);
                             setScanError(null);
                         }}
-                        className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${
-                            mode === "text"
+                        className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${mode === "text"
                                 ? "bg-emerald-500 text-slate-950 shadow-md"
                                 : "text-slate-400 hover:text-white"
-                        }`}
+                            }`}
                     >
                         <Edit3 className="w-4 h-4" />
                         <span>Enter Text Prompt</span>
@@ -258,10 +256,10 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                     <div className="py-12 text-center space-y-3">
                         <div className="w-14 h-14 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mx-auto" />
                         <p className="text-sm font-bold text-emerald-400">
-                            AI Computer Vision is analyzing food components...
+                            AI is analyzing your food...
                         </p>
                         <p className="text-xs text-slate-400">
-                            Estimating portion weight (g), Calories, and Ground-Truth macros
+                            Estimating portion weight, calories, and nutritional values
                         </p>
                     </div>
                 )}
@@ -327,11 +325,10 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                         key={item.key}
                                         type="button"
                                         onClick={() => setMealType(item.key as any)}
-                                        className={`py-1.5 text-xs font-semibold rounded-xl border transition-all ${
-                                            mealType === item.key
+                                        className={`py-1.5 text-xs font-semibold rounded-xl border transition-all ${mealType === item.key
                                                 ? "bg-emerald-500/20 border-emerald-500 text-emerald-300"
                                                 : "bg-slate-800 border-slate-700 text-slate-400"
-                                        }`}
+                                            }`}
                                     >
                                         {item.name}
                                     </button>
@@ -436,7 +433,7 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                                     onClick={handleReportError}
                                     className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-1.5 rounded-lg"
                                 >
-                                    {reportSuccess ? "Feedback Sent ✓" : "Submit for Admin Model Tuning"}
+                                    {reportSuccess ? "Feedback Sent ✓" : "Submit Feedback"}
                                 </button>
                             </div>
                         )}

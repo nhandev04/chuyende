@@ -208,10 +208,10 @@ def analyze_body_photo_cv(
     final_shape = f"{shape_category} • {somatotype}"
 
     recommendation = (
-        f"AI Computer Vision estimation from photo: "
+        f"Smart AI photo estimation: "
         f"Height ~{est_height_cm}cm, Weight ~{est_weight_kg}kg, Somatotype: {final_shape} (Shoulder/Waist ratio: {v_taper_index}). "
         f"BMI: {base_analysis['bmi']}, Est. Body Fat: {base_analysis['estimated_body_fat_pct']}%. "
-        f"Maintenance TDEE target: {base_analysis['tdee']} kcal/day."
+        f"Maintenance calorie target: {base_analysis['tdee']} kcal/day."
     )
 
 

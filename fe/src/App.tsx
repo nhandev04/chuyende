@@ -143,7 +143,7 @@ export function App() {
   const handleAuthSuccess = async (authUser: User, isNewRegistration: boolean = false) => {
     setUser(authUser);
     api.setStoredUser(authUser, authUser.access_token);
-    
+
     const p = await api.getProfile(authUser.user_id);
     setProfile(p);
 
@@ -203,10 +203,9 @@ export function App() {
   const isDark = theme === 'dark';
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
-    } font-sans selection:bg-emerald-500 selection:text-slate-950`}>
-      
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+      } font-sans selection:bg-emerald-500 selection:text-slate-950`}>
+
       <ClerkUserSync onSynced={(syncedUser) => handleAuthSuccess(syncedUser, false)} />
 
       {/* Header Bar */}
@@ -237,6 +236,7 @@ export function App() {
             onOpenWeightModal={() => setIsWeightModalOpen(true)}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
             onOpenSubscription={() => setIsSubscriptionOpen(true)}
+            onOpenRAGMealPlan={() => setIsRAGModalOpen(true)}
             theme={theme}
             refreshKey={refreshKey}
           />

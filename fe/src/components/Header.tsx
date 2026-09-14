@@ -33,9 +33,8 @@ export const Header: React.FC<HeaderProps> = ({
   const planName = user?.role === 'admin' ? 'ADMIN' : (user?.plan || 'STANDARD').toUpperCase();
 
   return (
-    <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg transition-colors duration-300 ${
-      isDark ? 'bg-slate-900/90 border-slate-800 text-white' : 'bg-white/95 border-slate-200 text-slate-900'
-    }`}>
+    <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg transition-colors duration-300 ${isDark ? 'bg-slate-900/90 border-slate-800 text-white' : 'bg-white/95 border-slate-200 text-slate-900'
+      }`}>
       <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
         {/* Brand Logo */}
         <div className="flex items-center space-x-2 cursor-pointer shrink-0" onClick={() => window.location.reload()}>
@@ -58,11 +57,10 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onToggleTheme}
             title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            className={`p-1.5 sm:p-2 rounded-xl border transition-all ${
-              isDark 
-                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' 
+            className={`p-1.5 sm:p-2 rounded-xl border transition-all ${isDark
+                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700'
                 : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-            }`}
+              }`}
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -72,15 +70,14 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Plan Badge / Upgrade Trigger */}
               <button
                 onClick={onOpenSubscription}
-                className={`px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold flex items-center gap-1 border transition-all shrink-0 ${
-                  user.role === 'admin'
+                className={`px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold flex items-center gap-1 border transition-all shrink-0 ${user.role === 'admin'
                     ? 'bg-amber-500/20 border-amber-500 text-amber-400'
                     : user.plan === 'pro'
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 border-indigo-400 text-white shadow-sm'
-                    : user.plan === 'plus'
-                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500'
-                    : 'bg-slate-200 dark:bg-slate-800 border-slate-400 text-slate-600 dark:text-slate-300'
-                }`}
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 border-indigo-400 text-white shadow-sm'
+                      : user.plan === 'plus'
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500'
+                        : 'bg-slate-200 dark:bg-slate-800 border-slate-400 text-slate-600 dark:text-slate-300'
+                  }`}
               >
                 <span>{planName}</span>
 
@@ -89,15 +86,15 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-              {/* RAG AI Smart Meal Plan Button */}
+              {/* AI Smart Meal Plan Button */}
               {onOpenRAGMealPlan && (
                 <button
                   onClick={onOpenRAGMealPlan}
-                  title="Open RAG AI Smart Meal Planner"
+                  title="AI Smart Meal Planner"
                   className="p-1.5 sm:px-2.5 sm:py-1 rounded-full text-[11px] font-extrabold flex items-center gap-1 border bg-gradient-to-r from-teal-500/20 to-emerald-500/20 border-emerald-500/50 text-emerald-400 hover:scale-105 transition shadow-sm shrink-0"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="hidden sm:inline">RAG Meal AI</span>
+                  <span className="hidden sm:inline">AI Meal Plan</span>
                 </button>
               )}
 
@@ -105,13 +102,12 @@ export const Header: React.FC<HeaderProps> = ({
               {user.role === 'admin' && (
                 <button
                   onClick={onToggleAdmin}
-                  className={`p-1.5 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${
-                    isAdminView 
-                      ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30' 
+                  className={`p-1.5 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 ${isAdminView
+                      ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30'
                       : isDark
                         ? 'bg-slate-800 text-amber-400 border border-amber-500/30 hover:bg-slate-700'
                         : 'bg-amber-50 text-amber-600 border border-amber-300 hover:bg-amber-100'
-                  }`}
+                    }`}
                 >
                   <ShieldAlert className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{isAdminView ? 'User Mode' : 'Admin Hub'}</span>
@@ -122,11 +118,10 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onOpenProfile}
                 title={user.full_name || 'Profile'}
-                className={`flex items-center space-x-1.5 p-1 sm:px-3 sm:py-1.5 rounded-full border text-xs font-medium transition-all shrink-0 ${
-                  isDark
+                className={`flex items-center space-x-1.5 p-1 sm:px-3 sm:py-1.5 rounded-full border text-xs font-medium transition-all shrink-0 ${isDark
                     ? 'bg-slate-800/80 hover:bg-slate-700 border-slate-700 text-slate-200'
                     : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
-                }`}
+                  }`}
               >
                 {user.avatar_url ? (
                   <img
@@ -145,9 +140,8 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onLogout}
                 title="Logout"
-                className={`p-1.5 sm:p-2 rounded-full transition-colors shrink-0 ${
-                  isDark ? 'text-slate-400 hover:text-rose-400 hover:bg-slate-800' : 'text-slate-500 hover:text-rose-600 hover:bg-slate-100'
-                }`}
+                className={`p-1.5 sm:p-2 rounded-full transition-colors shrink-0 ${isDark ? 'text-slate-400 hover:text-rose-400 hover:bg-slate-800' : 'text-slate-500 hover:text-rose-600 hover:bg-slate-100'
+                  }`}
               >
                 <LogOut className="w-4 h-4" />
               </button>

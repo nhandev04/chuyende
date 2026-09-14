@@ -112,7 +112,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 setAiBodyAnalysis(null);
                 setAiError(
                     err?.response?.data?.detail ||
-                        "❌ Could not detect body pose from this photo. Please upload a clear full-body photo taken from head to toe.",
+                    "❌ Could not detect your full body in this photo. Please upload a clear photo taken from head to toe.",
                 );
             } finally {
                 setAnalyzingPhoto(false);
@@ -144,7 +144,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 <button
                     onClick={handleClose}
                     className="absolute top-4 right-4 text-slate-400 hover:text-rose-400 p-2 rounded-full hover:bg-slate-800 transition-colors"
-                    title="Close (Without saving)"
+                    title="Close"
                 >
                     <X className="w-5 h-5" />
                 </button>
@@ -152,31 +152,29 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 {/* Header */}
                 <div className="mb-4 pr-8">
                     <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                        Biometrics & Physical Setup
+                        Body Profile & Health Setup
                     </span>
-                    <h2 className="text-lg font-extrabold text-white">Body Profile & Fitness Configuration</h2>
+                    <h2 className="text-lg font-extrabold text-white">Customize Your Health Profile</h2>
                 </div>
 
                 {/* Method Selector Tabs: 1. Manual Input | 2. AI Photo Analysis */}
                 <div className="flex bg-slate-800/80 p-1 rounded-2xl mb-5">
                     <button
                         onClick={() => setMethod("manual")}
-                        className={`flex-1 py-2 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${
-                            method === "manual"
+                        className={`flex-1 py-2 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${method === "manual"
                                 ? "bg-emerald-500 text-slate-950 shadow-md"
                                 : "text-slate-400 hover:text-white"
-                        }`}
+                            }`}
                     >
                         <Edit3 className="w-4 h-4" />
                         <span>1. Manual Input</span>
                     </button>
                     <button
                         onClick={() => setMethod("ai")}
-                        className={`flex-1 py-2 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${
-                            method === "ai"
+                        className={`flex-1 py-2 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all ${method === "ai"
                                 ? "bg-emerald-500 text-slate-950 shadow-md"
                                 : "text-slate-400 hover:text-white"
-                        }`}
+                            }`}
                     >
                         <Sparkles className="w-4 h-4" />
                         <span>2. AI Photo Analysis</span>
@@ -239,11 +237,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                         key={item.id}
                                         type="button"
                                         onClick={() => setGender(item.id as any)}
-                                        className={`py-2 text-xs font-bold rounded-xl border text-center transition-all ${
-                                            gender === item.id
+                                        className={`py-2 text-xs font-bold rounded-xl border text-center transition-all ${gender === item.id
                                                 ? "bg-emerald-500/20 border-emerald-500 text-emerald-300"
                                                 : "bg-slate-800 border-slate-700 text-slate-400"
-                                        }`}
+                                            }`}
                                     >
                                         {item.label}
                                     </button>
@@ -255,19 +252,18 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                             <label className="block text-xs text-slate-400 mb-1">Primary Fitness Goal</label>
                             <div className="grid grid-cols-3 gap-2">
                                 {[
-                                    { id: "weight_loss", label: "Weight Loss / Cut" },
-                                    { id: "muscle_gain", label: "Muscle Gain / Bulk" },
-                                    { id: "maintain", label: "Maintain Fitness" },
+                                    { id: "weight_loss", label: "Lose Weight / Cut" },
+                                    { id: "muscle_gain", label: "Gain Muscle / Bulk" },
+                                    { id: "maintain", label: "Maintain Shape" },
                                 ].map((item) => (
                                     <button
                                         key={item.id}
                                         type="button"
                                         onClick={() => setGoal(item.id as any)}
-                                        className={`py-2 px-2 text-xs font-semibold rounded-xl border text-center transition-all ${
-                                            goal === item.id
+                                        className={`py-2 px-2 text-xs font-semibold rounded-xl border text-center transition-all ${goal === item.id
                                                 ? "bg-emerald-500/20 border-emerald-500 text-emerald-300"
                                                 : "bg-slate-800 border-slate-700 text-slate-400"
-                                        }`}
+                                            }`}
                                     >
                                         {item.label}
                                     </button>
@@ -294,7 +290,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                             disabled={saving}
                             className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-4"
                         >
-                            {saving ? "Saving..." : "Save & Initialize Profile →"}
+                            {saving ? "Saving..." : "Save Profile →"}
                         </button>
                     </div>
                 )}
@@ -308,9 +304,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                 <div className="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
                                     <Sparkles className="w-7 h-7" />
                                 </div>
-                                <h3 className="font-extrabold text-base text-rose-200">🔒 AI Photo Analysis Locked</h3>
+                                <h3 className="font-extrabold text-base text-rose-200">🔒 AI Body Analysis Locked</h3>
                                 <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
-                                    AI Body Photo Scanning & YOLO Pose analysis is not available on the <strong className="text-slate-200">Standard Tier</strong>. Please upgrade your subscription tier to unlock AI features.
+                                    AI Full-Body Photo Analysis is not available on the <strong className="text-slate-200">Standard Plan</strong>. Please upgrade your subscription to unlock smart body evaluation.
                                 </p>
                                 {onOpenSubscription && (
                                     <button
@@ -320,7 +316,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                         }}
                                         className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-transform hover:scale-[1.02]"
                                     >
-                                        Upgrade Subscription Tier →
+                                        Upgrade Plan to Unlock →
                                     </button>
                                 )}
                             </div>
@@ -333,7 +329,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-2">
                                                 <Sparkles className="w-4 h-4 text-indigo-400" />
-                                                <span className="font-extrabold text-xs text-indigo-200">🔒 Pro Tier Exclusive Feature</span>
+                                                <span className="font-extrabold text-xs text-indigo-200">🔒 Pro Plan Feature</span>
                                             </div>
                                             {onOpenSubscription && (
                                                 <button
@@ -343,12 +339,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                                     }}
                                                     className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] rounded-lg shadow transition"
                                                 >
-                                                    Upgrade Pro →
+                                                    Upgrade to Pro →
                                                 </button>
                                             )}
                                         </div>
                                         <p className="text-[11px] text-indigo-300/90 leading-normal">
-                                            Full-body AI Pose Analysis (YOLOv8 Pose 17 Keypoints & 10-level BMI Scale) requires Pro subscription tier.
+                                            Comprehensive full-body shape analysis & detailed body composition evaluation require the Pro plan.
                                         </p>
                                     </div>
                                 )}
@@ -360,8 +356,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                             👑
                                         </div>
                                         <div>
-                                            <span className="font-extrabold text-xs text-amber-300 block">✨ Pro Tier Active — Best Version Unlocked</span>
-                                            <span className="text-[11px] text-slate-400">You are using our highest tier AI Full-Body Pose Analysis (YOLOv8 17 Keypoints & 10-level BMI Scale).</span>
+                                            <span className="font-extrabold text-xs text-amber-300 block">✨ Pro Plan Active</span>
+                                            <span className="text-[11px] text-slate-400">You have full access to our advanced full-body shape and body composition analysis.</span>
                                         </div>
                                     </div>
                                 )}
@@ -375,7 +371,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">
-                                            Height (cm) (Auto-updated by photo)
+                                            Height (cm) (Auto-detected)
                                         </label>
                                         <input
                                             type="number"
@@ -386,7 +382,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                     </div>
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">
-                                            Weight (kg) (Auto-updated by photo)
+                                            Weight (kg) (Auto-detected)
                                         </label>
                                         <input
                                             type="number"
@@ -428,10 +424,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                         <label className="cursor-pointer block py-5">
                                             <Upload className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                                             <span className="text-xs font-semibold text-slate-300">
-                                                Tap to select or capture full-body photo for AI Pose
+                                                Tap to select or take a full-body photo
                                             </span>
                                             <span className="block text-[10px] text-slate-500 mt-1">
-                                                YOLO Pose extracts 17 skeleton keypoints & calculates dynamic BMI
+                                                AI evaluates body proportions, posture, and estimated physical stats
                                             </span>
                                             <input
                                                 type="file"
@@ -447,38 +443,37 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                 {analyzingPhoto && (
                                     <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-center text-xs text-emerald-400 animate-pulse">
                                         <Sparkles className="w-5 h-5 mx-auto mb-1" />
-                                        AI YOLO Pose is extracting 17 skeleton keypoints & analyzing 10-level BMI scale...
+                                        AI is analyzing body posture and evaluating physical stats...
                                     </div>
                                 )}
 
                                 {aiBodyAnalysis && !analyzingPhoto && (
                                     <div className="p-4 bg-slate-800/80 border border-emerald-500/30 rounded-2xl space-y-3 text-xs">
                                         <div className="flex items-center justify-between font-bold text-emerald-400">
-                                            <span>AI Body Shape: {aiBodyAnalysis.body_shape}</span>
-                                            <span>TDEE: {aiBodyAnalysis.tdee} kcal</span>
+                                            <span>Body Shape: {aiBodyAnalysis.body_shape}</span>
+                                            <span>Daily Burn (TDEE): {aiBodyAnalysis.tdee} kcal</span>
                                         </div>
 
                                         {aiBodyAnalysis.bmi_level && (
                                             <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-700">
                                                 <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
-                                                    <span className="text-amber-400">📊 BMI Scale: Level {aiBodyAnalysis.bmi_level}/10</span>
+                                                    <span className="text-amber-400">📊 Body Composition: Level {aiBodyAnalysis.bmi_level}/10</span>
                                                     <span className="text-emerald-300">{aiBodyAnalysis.bmi_level_label}</span>
                                                 </div>
                                                 <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex">
                                                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lvl) => (
                                                         <div
                                                             key={lvl}
-                                                            className={`flex-1 h-full border-r border-slate-900 transition-all ${
-                                                                lvl <= (aiBodyAnalysis.bmi_level || 5)
+                                                            className={`flex-1 h-full border-r border-slate-900 transition-all ${lvl <= (aiBodyAnalysis.bmi_level || 5)
                                                                     ? (aiBodyAnalysis.bmi_level || 5) <= 3
                                                                         ? "bg-amber-400"
                                                                         : (aiBodyAnalysis.bmi_level || 5) <= 5
-                                                                          ? "bg-emerald-400"
-                                                                          : (aiBodyAnalysis.bmi_level || 5) <= 7
-                                                                            ? "bg-orange-400"
-                                                                            : "bg-rose-500"
+                                                                            ? "bg-emerald-400"
+                                                                            : (aiBodyAnalysis.bmi_level || 5) <= 7
+                                                                                ? "bg-orange-400"
+                                                                                : "bg-rose-500"
                                                                     : "bg-slate-700/50"
-                                                            }`}
+                                                                }`}
                                                         />
                                                     ))}
                                                 </div>
@@ -497,7 +492,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                     disabled={saving}
                                     className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all mt-2"
                                 >
-                                    {saving ? "Saving..." : "Save & Initialize AI Analysis →"}
+                                    {saving ? "Saving..." : "Save Analysis Results →"}
                                 </button>
                             </>
                         )}

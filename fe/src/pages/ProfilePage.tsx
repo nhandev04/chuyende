@@ -83,7 +83,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
         <h3 className="text-xl font-bold">Personal Health Profile</h3>
-        <p className="text-sm text-slate-400">Please sign in to view and customize your biometric parameters, TDEE index, and fitness goals.</p>
+        <p className="text-sm text-slate-400">Please sign in to view and customize your daily calorie targets, fitness goals, and preferences.</p>
       </div>
     );
   }
@@ -116,7 +116,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
   return (
     <div className={`space-y-6 pb-24 max-w-2xl mx-auto px-4 pt-4 ${textMain}`}>
-      
+
       {/* Header Profile Summary */}
       <div className={`border rounded-3xl p-6 shadow-2xl text-center relative overflow-hidden ${cardBg}`}>
         <div className="relative w-24 h-24 mx-auto mb-3 group">
@@ -153,37 +153,33 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
         <h2 className={`text-xl font-black ${textMain}`}>{user?.full_name || 'Health AI User'}</h2>
         <p className={`text-xs mt-0.5 ${textSub}`}>{user?.email}</p>
-        <span className={`inline-block text-[10px] font-bold px-3 py-1 rounded-full mt-2 border ${
-          isDark ? 'bg-slate-800 text-emerald-400 border-slate-700' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
-        }`}>
+        <span className={`inline-block text-[10px] font-bold px-3 py-1 rounded-full mt-2 border ${isDark ? 'bg-slate-800 text-emerald-400 border-slate-700' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+          }`}>
           {user?.role === 'admin' ? 'Administrator Account (Admin)' : 'Standard User Account'}
         </span>
       </div>
 
       {/* Subscription Tier & Expiration Date Card */}
-      <div className={`border rounded-3xl p-5 shadow-xl relative overflow-hidden ${
-        user?.role === 'admin'
+      <div className={`border rounded-3xl p-5 shadow-xl relative overflow-hidden ${user?.role === 'admin'
           ? 'bg-gradient-to-r from-slate-900 via-amber-950/40 to-slate-900 border-amber-500/40'
           : user?.plan === 'pro'
-          ? 'bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border-indigo-500/40'
-          : user?.plan === 'plus'
-          ? 'bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 border-emerald-500/40'
-          : cardBg
-      }`}>
+            ? 'bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border-indigo-500/40'
+            : user?.plan === 'plus'
+              ? 'bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 border-emerald-500/40'
+              : cardBg
+        }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold ${
-              user?.role === 'admin' || user?.plan === 'pro' ? 'bg-amber-500/20 text-amber-400' : user?.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/40 text-slate-400'
-            }`}>
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold ${user?.role === 'admin' || user?.plan === 'pro' ? 'bg-amber-500/20 text-amber-400' : user?.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/40 text-slate-400'
+              }`}>
               {user?.role === 'admin' ? <ShieldCheck className="w-6 h-6" /> : user?.plan === 'pro' ? <Crown className="w-6 h-6 fill-amber-400 text-amber-400" /> : user?.plan === 'plus' ? <Zap className="w-6 h-6" /> : <Calendar className="w-6 h-6" />}
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CURRENT SUBSCRIPTION PLAN</span>
               <h3 className={`text-base font-extrabold flex items-center gap-2 ${textMain}`}>
                 {user?.role === 'admin' ? 'ADMINISTRATOR TIER' : (user?.plan || 'STANDARD').toUpperCase() + ' TIER'}
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                  user?.role === 'admin' || user?.plan === 'pro' ? 'bg-amber-500/20 text-amber-400' : user?.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/50 text-slate-400'
-                }`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${user?.role === 'admin' || user?.plan === 'pro' ? 'bg-amber-500/20 text-amber-400' : user?.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/50 text-slate-400'
+                  }`}>
                   {subStatus?.subscription_status || 'Active'}
                 </span>
               </h3>
@@ -230,7 +226,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       {savedSuccess && (
         <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-2xl text-center text-xs text-emerald-500 flex items-center justify-center space-x-2 animate-fadeIn">
           <CheckCircle2 className="w-4 h-4" />
-          <span>Profile settings saved successfully! AI recalculated TDEE & BMI.</span>
+          <span>Profile settings saved successfully! Daily calorie target & BMI updated.</span>
         </div>
       )}
 
@@ -238,7 +234,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       <form onSubmit={handleSave} className={`border rounded-3xl p-6 shadow-xl space-y-4 ${cardBg}`}>
         <div className={`flex items-center space-x-2 pb-3 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
           <Sliders className="w-5 h-5 text-emerald-500" />
-          <h3 className={`font-extrabold text-sm ${textMain}`}>Biometric Parameters & Fitness Goals</h3>
+          <h3 className={`font-extrabold text-sm ${textMain}`}>Health Metrics & Fitness Goals</h3>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -292,7 +288,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           >
             <option value="weight_loss">Weight Loss / Cut (-400 kcal)</option>
             <option value="muscle_gain">Muscle Gain / Bulk (+300 kcal)</option>
-            <option value="maintain">Maintain Fitness (Equal to TDEE)</option>
+            <option value="maintain">Maintain Fitness (Balanced calories)</option>
           </select>
         </div>
 
@@ -310,11 +306,50 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           <label className={`block text-xs mb-1 ${textSub}`}>Food Allergies / Dietary Preferences</label>
           <input
             type="text"
-            placeholder="e.g., Seafood allergy, Low-sodium diet..."
+            placeholder="e.g., Seafood allergy, Vegan, Diabetes, High blood fat..."
             value={dietPref}
             onChange={(e) => setDietPref(e.target.value)}
             className={`w-full rounded-xl p-2.5 text-xs ${inputBg}`}
           />
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {[
+              { label: '🥗 Vegan', value: 'Vegan' },
+              { label: '🩸 Diabetes', value: 'Diabetes' },
+              { label: '🫀 High Blood Fat', value: 'High blood fat' },
+              { label: '🦐 Seafood Allergy', value: 'Seafood allergy' },
+              { label: '🥛 Dairy / Lactose Allergy', value: 'Dairy/Lactose allergy' },
+            ].map((tag) => {
+              const isSelected = dietPref.toLowerCase().includes(tag.value.toLowerCase());
+              return (
+                <button
+                  key={tag.value}
+                  type="button"
+                  onClick={() => {
+                    const current = dietPref.trim();
+                    if (!current) {
+                      setDietPref(tag.value);
+                    } else if (isSelected) {
+                      const parts = current
+                        .split(',')
+                        .map(p => p.trim())
+                        .filter(p => !p.toLowerCase().includes(tag.value.toLowerCase()));
+                      setDietPref(parts.join(', '));
+                    } else {
+                      setDietPref(`${current}, ${tag.value}`);
+                    }
+                  }}
+                  className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all ${isSelected
+                      ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm shadow-emerald-500/30'
+                      : isDark
+                        ? 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 border border-slate-700/60'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                    }`}
+                >
+                  {tag.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="pt-2 flex space-x-3">
@@ -329,9 +364,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           <button
             type="button"
             onClick={onLogout}
-            className={`font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-1.5 border ${
-              isDark ? 'bg-slate-800 text-rose-400 border-slate-700 hover:bg-slate-700' : 'bg-slate-100 text-rose-600 border-slate-300 hover:bg-slate-200'
-            }`}
+            className={`font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-1.5 border ${isDark ? 'bg-slate-800 text-rose-400 border-slate-700 hover:bg-slate-700' : 'bg-slate-100 text-rose-600 border-slate-300 hover:bg-slate-200'
+              }`}
           >
             <LogOut className="w-4 h-4" />
             <span>Logout</span>

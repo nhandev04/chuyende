@@ -77,8 +77,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
                 <h2 className="text-3xl font-black text-slate-900 dark:text-white">Welcome to HealthLens AI</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                    AI-driven platform for automated food computer vision, calorie tracking, and biometrically tailored
-                    diet recommendations.
+                    Your smart AI companion for photo food scanning, calorie tracking, and personalized diet recommendations.
                 </p>
                 <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
                     <button
@@ -123,11 +122,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className={`space-y-6 pb-24 max-w-4xl mx-auto px-4 pt-4 ${textMain}`}>
             {/* Top Banner / Welcome */}
             <div
-                className={`border rounded-3xl p-5 shadow-xl flex items-center justify-between transition-colors ${
-                    isDark
+                className={`border rounded-3xl p-5 shadow-xl flex items-center justify-between transition-colors ${isDark
                         ? "bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-slate-800"
                         : "bg-gradient-to-r from-emerald-50 via-white to-teal-50 border-slate-200"
-                }`}
+                    }`}
             >
                 <div>
                     <div className="flex items-center space-x-2">
@@ -135,15 +133,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             AI Health Tracking System
                         </span>
                         <span
-                            className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase ${
-                                user?.role === "admin"
+                            className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase ${user?.role === "admin"
                                     ? "bg-amber-500/20 text-amber-400"
                                     : user?.plan === "pro"
-                                      ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
-                                      : user?.plan === "plus"
-                                        ? "bg-emerald-500/20 text-emerald-400"
-                                        : "bg-slate-700 text-slate-300"
-                            }`}
+                                        ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
+                                        : user?.plan === "plus"
+                                            ? "bg-emerald-500/20 text-emerald-400"
+                                            : "bg-slate-700 text-slate-300"
+                                }`}
                         >
                             Tier: {user?.role === "admin" ? "ADMIN" : user?.plan || "STANDARD"}
                         </span>
@@ -154,8 +151,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         {profile?.goal === "weight_loss"
                             ? "Weight Loss / Cut"
                             : profile?.goal === "muscle_gain"
-                              ? "Muscle Gain / Bulk"
-                              : "Maintain Fitness"}
+                                ? "Muscle Gain / Bulk"
+                                : "Maintain Fitness"}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -163,7 +160,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         onClick={onOpenOnboarding}
                         className="hidden sm:flex bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 font-semibold transition"
                     >
-                        Physical Setup
+                        Body Profile
                     </button>
                     <button
                         onClick={onOpenSubscription}
@@ -189,7 +186,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                 <div>
                                     <h3 className="font-extrabold text-sm text-indigo-300">{proMealPlan.title}</h3>
                                     <p className="text-[11px] text-slate-400">
-                                        TDEE Tailored ({proMealPlan.target_daily_calories} kcal) & BMI Biometrics
+                                        Tailored to your daily goal ({proMealPlan.target_daily_calories} kcal) & fitness profile
                                     </p>
                                 </div>
                             </div>
@@ -209,7 +206,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                         className="text-xs font-bold text-amber-400 bg-amber-500/20 hover:bg-amber-500 hover:text-slate-950 border border-amber-500/40 px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1 shadow-sm"
                                     >
                                         <Sparkles className="w-3.5 h-3.5" />
-                                        <span>Open RAG AI Planner →</span>
+                                        <span>AI Meal Planner →</span>
                                     </button>
                                 )}
                             </div>
@@ -242,7 +239,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                     👑 Generating Pro AI Meal Plan...
                                 </h3>
                                 <p className="text-xs text-slate-400 mt-0.5">
-                                    Customized daily meals tailored to your TDEE & health biometrics.
+                                    Customized daily meals tailored to your daily calorie target & health profile.
                                 </p>
                             </div>
                         </div>
@@ -262,7 +259,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             </h3>
                             <p className="text-xs text-slate-400 mt-0.5">
                                 Upgrade to Pro tier (~$2/mo) to unlock custom meal plans for Breakfast, Lunch, Dinner, &
-                                Snack tailored to your TDEE & Body Shape.
+                                Snack tailored to your daily calorie burn & fitness goals.
                             </p>
                         </div>
                     </div>
@@ -402,15 +399,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {/* AI Recommendation Card */}
             {recommendation && (
                 <div
-                    className={`border rounded-3xl p-5 shadow-xl relative ${
-                        isDark ? "bg-slate-900/90 border-emerald-500/30" : "bg-emerald-50/50 border-emerald-200"
-                    }`}
+                    className={`border rounded-3xl p-5 shadow-xl relative ${isDark ? "bg-slate-900/90 border-emerald-500/30" : "bg-emerald-50/50 border-emerald-200"
+                        }`}
                 >
                     <div className="flex items-center space-x-2 mb-2">
                         <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
                             <Sparkles className="w-4 h-4" />
                         </div>
-                        <h3 className="font-extrabold text-sm text-emerald-500">Automated AI Diet Recommendation</h3>
+                        <h3 className="font-extrabold text-sm text-emerald-500">AI Diet Recommendations</h3>
                     </div>
                     <p className={`text-xs leading-relaxed mb-3 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                         {recommendation.advice}
@@ -421,9 +417,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             {recommendation.suggested_meals.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className={`p-3 rounded-2xl border flex items-center justify-between text-xs ${
-                                        isDark ? "bg-slate-800/60 border-slate-800" : "bg-white border-slate-200"
-                                    }`}
+                                    className={`p-3 rounded-2xl border flex items-center justify-between text-xs ${isDark ? "bg-slate-800/60 border-slate-800" : "bg-white border-slate-200"
+                                        }`}
                                 >
                                     <div>
                                         <span className="font-bold text-emerald-500">{item.meal}: </span>
@@ -432,9 +427,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                         </span>
                                     </div>
                                     <span
-                                        className={`font-bold text-[11px] px-2 py-1 rounded-lg ${
-                                            isDark ? "bg-slate-900 text-slate-400" : "bg-slate-100 text-slate-600"
-                                        }`}
+                                        className={`font-bold text-[11px] px-2 py-1 rounded-lg ${isDark ? "bg-slate-900 text-slate-400" : "bg-slate-100 text-slate-600"
+                                            }`}
                                     >
                                         ~{item.calories} kcal
                                     </span>
@@ -475,11 +469,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 <div className={`border p-4 rounded-2xl text-center ${cardBg}`}>
-                    <span className={`text-[10px] font-semibold block ${textSub}`}>TDEE ENERGY</span>
+                    <span className={`text-[10px] font-semibold block ${textSub}`}>DAILY CALORIE BURN</span>
                     <span className="text-xl font-extrabold text-amber-500 block mt-1">
                         {profile?.tdee || 2200} <span className="text-xs font-normal">kcal</span>
                     </span>
-                    <span className={`text-[10px] block mt-1 ${textSub}`}>Maintenance Level</span>
+                    <span className={`text-[10px] block mt-1 ${textSub}`}>Maintenance Burn (TDEE)</span>
                 </div>
             </div>
 
@@ -499,21 +493,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         {todayLogs.map((log) => (
                             <div
                                 key={log.id}
-                                className={`border rounded-2xl p-3.5 flex items-center justify-between transition-all ${
-                                    isDark
+                                className={`border rounded-2xl p-3.5 flex items-center justify-between transition-all ${isDark
                                         ? "bg-slate-800/60 border-slate-700/60 hover:bg-slate-800"
                                         : "bg-slate-50 border-slate-200 hover:bg-slate-100"
-                                }`}
+                                    }`}
                             >
                                 <div className="flex items-center space-x-3">
                                     <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-sm">
                                         {log.meal_type === "breakfast"
                                             ? "🌅"
                                             : log.meal_type === "lunch"
-                                              ? "☀️"
-                                              : log.meal_type === "dinner"
-                                                ? "🌙"
-                                                : "🍎"}
+                                                ? "☀️"
+                                                : log.meal_type === "dinner"
+                                                    ? "🌙"
+                                                    : "🍎"}
                                     </div>
                                     <div>
                                         <h4 className={`font-bold text-sm ${textMain}`}>{log.food_name}</h4>
@@ -528,11 +521,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                     <span className="font-black text-sm text-emerald-500">{log.calories} kcal</span>
                                     <button
                                         onClick={() => handleDeleteLog(log.id)}
-                                        className={`p-1.5 rounded-lg transition-colors ${
-                                            isDark
+                                        className={`p-1.5 rounded-lg transition-colors ${isDark
                                                 ? "text-slate-500 hover:text-rose-400 hover:bg-slate-700"
                                                 : "text-slate-400 hover:text-rose-600 hover:bg-slate-200"
-                                        }`}
+                                            }`}
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>

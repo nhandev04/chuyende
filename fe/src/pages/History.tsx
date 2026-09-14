@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import type { NutritionSummary, WeightLog } from '../types';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
   LineChart, Line, CartesianGrid
 } from 'recharts';
@@ -52,7 +52,7 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
 
   return (
     <div className={`space-y-6 pb-24 max-w-4xl mx-auto px-4 pt-4 ${textMain}`}>
-      
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -61,18 +61,16 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
         </div>
 
         {/* Time Period Tabs */}
-        <div className={`flex border p-1 rounded-2xl ${
-          isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'
-        }`}>
+        <div className={`flex border p-1 rounded-2xl ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'
+          }`}>
           {(['daily', 'weekly', 'monthly'] as const).map((period) => (
             <button
               key={period}
               onClick={() => setFilterPeriod(period)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
-                filterPeriod === period
+              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${filterPeriod === period
                   ? 'bg-emerald-500 text-slate-950 shadow-md'
                   : textSub
-              }`}
+                }`}
             >
               {period === 'daily' ? 'Daily' : period === 'weekly' ? 'Weekly' : 'Monthly'}
             </button>
@@ -165,9 +163,8 @@ export const History: React.FC<HistoryProps> = ({ userId, theme = 'dark' }) => {
         <h3 className={`font-extrabold text-sm mb-3 ${textMain}`}>Weight Log Records</h3>
         <div className="space-y-2">
           {weightLogs.map((log) => (
-            <div key={log.id} className={`p-3 rounded-2xl border flex items-center justify-between text-xs ${
-              isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
-            }`}>
+            <div key={log.id} className={`p-3 rounded-2xl border flex items-center justify-between text-xs ${isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
+              }`}>
               <span className={textSub}>{new Date(log.recorded_at).toLocaleDateString('en-US')}</span>
               <span className="font-bold text-emerald-500 text-sm">{log.weight_kg} kg</span>
             </div>

@@ -93,7 +93,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             <Sparkles className="w-7 h-7 text-slate-950" />
           </div>
           <h2 className="text-xl font-bold">Welcome to HealthLens AI</h2>
-          <p className="text-xs text-slate-400 mt-1">Sign in with Clerk OAuth or System Admin Account</p>
+          <p className="text-xs text-slate-400 mt-1">Sign in to track your meals and health progress</p>
         </div>
 
         {/* Clerk Google Login Button */}
@@ -108,12 +108,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
           </svg>
-          Sign in with Google (Clerk Auth)
+          Continue with Google
         </button>
 
         <div className="flex items-center my-4">
           <div className="flex-1 border-t border-slate-800"></div>
-          <span className="px-3 text-xs text-slate-500 uppercase tracking-wider font-semibold">Or System Account</span>
+          <span className="px-3 text-xs text-slate-500 uppercase tracking-wider font-semibold">Or with email</span>
           <div className="flex-1 border-t border-slate-800"></div>
         </div>
 
@@ -121,17 +121,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         <div className="flex bg-slate-800/60 p-1 rounded-xl mb-6">
           <button
             onClick={() => { setTab('login'); setError(''); }}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-              tab === 'login' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
-            }`}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${tab === 'login' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
           >
-            Sign In / Admin
+            Sign In
           </button>
           <button
             onClick={() => { setTab('register'); setError(''); }}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-              tab === 'register' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
-            }`}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${tab === 'register' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
           >
             Create Account
           </button>
@@ -196,7 +194,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             disabled={loading}
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 hover:opacity-95 transition-opacity"
           >
-            {loading ? 'Processing...' : tab === 'login' ? 'System Sign In' : 'Create Account & Continue →'}
+            {loading ? 'Processing...' : tab === 'login' ? 'Sign In' : 'Create Account →'}
           </button>
         </form>
       </div>
