@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import type { FoodDatabaseItem, AIReportItem } from '../types';
 import { ShieldAlert, Database, AlertCircle, Plus, Trash2, CheckCircle2, XCircle, Users, Shield } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 interface AdminPageProps {
   theme?: 'dark' | 'light';
@@ -61,8 +62,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
     loadAdminData();
   }, []);
 
+  const toast = useToast();
+
   const notify = (msg: string) => {
     setActionMessage(msg);
+    toast.success(msg, "Admin Hub");
     setTimeout(() => setActionMessage(null), 3000);
   };
 
@@ -83,7 +87,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
       notify(`Successfully added "${created.food_name}" to the food library!`);
       loadAdminData();
     } catch (err: any) {
-      alert(err.message || "Failed to add food item");
+      toast.error(err.message || "Failed to add food item", "Admin Action Error");
     }
   };
 
@@ -95,7 +99,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
       notify(`Deleted "${foodName}" from the library.`);
       loadAdminData();
     } catch (err: any) {
-      alert(err.message || "Failed to delete food item");
+      toast.error(err.message || "Failed to delete food item", "Admin Action Error");
     }
   };
 
@@ -108,7 +112,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
         : `Dismissed report #${reportId}.`);
       loadAdminData();
     } catch (err: any) {
-      alert(err.message || "Failed to update report status");
+      toast.error(err.message || "Failed to update report status", "Admin Action Error");
     }
   };
 
@@ -123,7 +127,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
       notify(`Updated account settings for user #${userId}.`);
       loadAdminData();
     } catch (err: any) {
-      alert(err.message || "Failed to update user account");
+      toast.error(err.message || "Failed to update user account", "Admin Action Error");
     }
   };
 

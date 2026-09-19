@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
 import type { User, UserProfile, FoodLog, NutritionSummary, AIRecommendation, DailyMealPlan } from "../types";
 import { Sparkles, Flame, Plus, Trash2, Crown, Lock, RefreshCw } from "lucide-react";
+import { useToast } from "../components/Toast";
 
 interface DashboardProps {
     user: User | null;
@@ -91,14 +92,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
         );
     }
 
+    const toast = useToast();
+
     const handleRefreshProMeal = async () => {
         if (!userId) return;
         setRefreshingProPlan(true);
         try {
             const mealRes = await api.getProDailyMealRecommendations(userId);
             setProMealPlan(mealRes);
+            toast.success("AI meal plan recommendations updated!", "Meal Plan Refreshed");
         } catch (err: any) {
-            alert(err.message || "Connection error while loading new meal recommendations.");
+            toast.error(err.message || "Connection error while loading new meal recommendations.", "AI Meal Plan Error");
         } finally {
             setRefreshingProPlan(false);
         }

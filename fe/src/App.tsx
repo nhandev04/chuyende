@@ -19,6 +19,8 @@ import { SubscriptionModal } from './components/SubscriptionModal';
 import { RAGMealPlanModal } from './components/RAGMealPlanModal';
 
 
+import { useToast } from './components/Toast';
+
 function useClerkSafe() {
   try {
     return useClerk();
@@ -115,6 +117,8 @@ export function App() {
     loadUserProfile();
   }, [user, refreshKey]);
 
+  const toast = useToast();
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get('payment');
@@ -125,14 +129,14 @@ export function App() {
         setUser(updatedUser);
         setRefreshKey(prev => prev + 1);
         window.history.replaceState({}, document.title, window.location.pathname);
-        alert(`🎉 Payment Verified! Your account has been upgraded to ${(updatedUser.plan || 'PLUS').toUpperCase()} tier.`);
+        toast.success(`Your account has been upgraded to ${(updatedUser.plan || 'PLUS').toUpperCase()} tier.`, '🎉 Payment Verified');
       }).catch((err) => {
         window.history.replaceState({}, document.title, window.location.pathname);
-        alert(err.message || "❌ Unable to verify payment session. Security verification failed.");
+        toast.error(err.message || "Unable to verify payment session. Security verification failed.", "Payment Failed");
       });
     } else if (paymentStatus === 'success' && !sessionId) {
       window.history.replaceState({}, document.title, window.location.pathname);
-      alert("❌ Invalid payment parameters. Security verification failed.");
+      toast.error("Invalid payment parameters. Security verification failed.", "Payment Error");
     }
   }, []);
 
@@ -213,6 +217,8 @@ export function App() {
       <Header
         user={user}
         profile={profile}
+        activeTab={activeTab}
+        onNavigateTab={navigateTab}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenProfile={() => navigateTab('profile')}
         onOpenSubscription={() => setIsSubscriptionOpen(true)}

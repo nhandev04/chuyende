@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/clerk-react'
 import './index.css'
 import App from './App.tsx'
+import { ToastProvider } from './components/Toast'
 
 import React from 'react'
 
@@ -28,7 +29,7 @@ class SafeClerkWrapper extends React.Component<{ children: React.ReactNode }, { 
   }
   render() {
     if (this.state.hasError || !isValidClerkKey || !PUBLISHABLE_KEY) {
-      return <App />;
+      return <>{this.props.children}</>;
     }
     return (
       <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
@@ -40,11 +41,10 @@ class SafeClerkWrapper extends React.Component<{ children: React.ReactNode }, { 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SafeClerkWrapper>
-      <App />
-    </SafeClerkWrapper>
+    <ToastProvider>
+      <SafeClerkWrapper>
+        <App />
+      </SafeClerkWrapper>
+    </ToastProvider>
   </StrictMode>,
 )
-
-
-

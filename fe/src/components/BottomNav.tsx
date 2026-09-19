@@ -43,7 +43,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             }`}
         >
           <BarChart3 className="w-5 h-5" />
-          <span className="text-[10px]">Progress</span>
+          <span className="text-[10px]">History</span>
         </button>
 
         {/* Main Action floating Camera Button */}

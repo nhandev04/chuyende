@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, ShoppingBag, ChefHat, CheckCircle2, Lock, X, RefreshCw, Layers } from 'lucide-react';
 import { api } from '../services/api';
+import { useToast } from './Toast';
 import type { User } from '../types';
 
 interface RAGMealPlanModalProps {
@@ -37,14 +38,17 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
     }
   }, [user, isStandard]);
 
+  const toast = useToast();
+
   const handleGenerate = async () => {
     if (!user?.user_id) return;
     setLoading(true);
     try {
       const data = await api.generateRAGMealPlan(user.user_id);
       setRagData(data);
+      toast.success("AI Meal Plan generated successfully!", "Smart Meal Planner");
     } catch (err: any) {
-      alert(err.message || "Failed to generate AI meal plan.");
+      toast.error(err.message || "Failed to generate AI meal plan.", "Generation Error");
     } finally {
       setLoading(false);
     }
@@ -64,9 +68,9 @@ export const RAGMealPlanModal: React.FC<RAGMealPlanModalProps> = ({
         fat_g: meal.fat_g
       });
       onFoodLogged();
-      alert(`✅ Successfully added "${meal.meal_name}" to your daily journal!`);
+      toast.success(`Added "${meal.meal_name}" to your daily journal!`, "Logged Meal");
     } catch (err: any) {
-      alert(err.message || "Failed to log food");
+      toast.error(err.message || "Failed to log food", "Logging Error");
     } finally {
       setLoggingIndex(null);
     }

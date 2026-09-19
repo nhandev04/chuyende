@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import type { User, UserProfile, SubscriptionStatusOut } from '../types';
 import { Save, LogOut, CheckCircle2, Sliders, Crown, Calendar, Zap, ShieldCheck, Camera } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 interface ProfilePageProps {
   user: User | null;
@@ -41,6 +42,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     }
   }, [user]);
 
+  const toast = useToast();
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !user?.user_id) return;
     const file = e.target.files[0];
@@ -51,8 +54,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       if (user) {
         user.avatar_url = res.avatar_url;
       }
+      toast.success("Profile avatar updated successfully!", "Avatar Uploaded");
     } catch (err: any) {
-      alert(err.message || "Failed to upload avatar");
+      toast.error(err.message || "Failed to upload avatar", "Avatar Error");
     } finally {
       setUploadingAvatar(false);
     }

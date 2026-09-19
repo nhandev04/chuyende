@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { api } from "../services/api";
+import { useToast } from "./Toast";
 import type { User, AIAnalysisResult } from "../types";
 import { X, Camera, Upload, Sparkles, AlertTriangle, Edit3, Check, Lock } from "lucide-react";
 
@@ -128,14 +129,26 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
         onClose();
     };
 
+    const toast = useToast();
+
     const handleReportError = async () => {
-        if (!reportCorrection.trim() || !result) return;
-        await api.submitAIReport(userId, result.food_name, reportCorrection);
-        setReportSuccess(true);
-        setTimeout(() => {
-            setReportOpen(false);
-            setReportSuccess(false);
-        }, 2000);
+        if (!reportCorrection.trim()) {
+            toast.warning("Please enter the correct food name before submitting.", "Missing Input");
+            return;
+        }
+        if (!result) return;
+        try {
+            await api.submitAIReport(userId, result.food_name, reportCorrection);
+            setReportSuccess(true);
+            toast.success(`Reported AI misclassification: "${result.food_name}" -> "${reportCorrection}"`, "Report Sent to Admin");
+            setTimeout(() => {
+                setReportOpen(false);
+                setReportSuccess(false);
+                setReportCorrection("");
+            }, 1500);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to submit AI misclassification report.", "Report Error");
+        }
     };
 
     return (
