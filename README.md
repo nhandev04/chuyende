@@ -49,24 +49,6 @@ npm run dev
 
 ---
 
-### 3️ Khởi Chạy Phân Hệ AI & Big Data PySpark (Tùy chọn - `Food_calories_analysis/`)
-
-Mở Terminal thứ 3 nếu muốn chạy ứng dụng nghiên cứu Big Data & PySpark Batch:
-
-```bash
-# 1. Di chuyển vào thư mục Big Data
-cd Food_calories_analysis
-
-# 2. Cài đặt thư viện Streamlit & PySpark
-pip install -r requirements.txt
-
-# 3. Khởi chạy Streamlit Dashboard
-streamlit run app.py
-```
-
-- **Streamlit Dashboard Base**: `http://localhost:8501`
-
----
 
 ## Tài Khoản Thử Nghiệm Mặc Định (Demo Credentials)
 
