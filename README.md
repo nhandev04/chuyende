@@ -1,19 +1,19 @@
-# 🥗 HealthLens AI - Nền Tảng Chăm Sóc Sức Khỏe & Định Lượng Calorie AI
+# HealthLens AI - Nền Tảng Chăm Sóc Sức Khỏe & Định Lượng Calorie AI
 
 Dự án Đồ Án Tốt Nghiệp: **Xây dựng nền tảng web chăm sóc sức khỏe và định lượng calorie dựa trên trí tuệ nhân tạo (AI-Powered Personalized Health Care and Calorie Quantification Web Platform)**
 
 ---
 
-## 🚀 Hướng Dẫn Khởi Chạy Ứng Dụng (Quick Start Guide)
+## Hướng Dẫn Khởi Chạy Ứng Dụng (Quick Start Guide)
 
-### 📋 Yêu cầu tiên quyết (Prerequisites)
+### Yêu cầu tiên quyết (Prerequisites)
 
 - **Node.js**: `>= 18.0.0`
 - **Python**: `>= 3.10`
 
 ---
 
-### 1️⃣ Khởi Chạy Backend FastAPI (`be/`)
+### 1️ Khởi Chạy Backend FastAPI (`be/`)
 
 Mở Terminal thứ 1 và thực hiện các lệnh sau:
 
@@ -28,12 +28,12 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
-- 🌐 **Backend API Base**: `http://localhost:8000`
-- 📑 **Tài liệu API Swagger UI**: `http://localhost:8000/docs`
+- **Backend API Base**: `http://localhost:8000`
+- **Tài liệu API Swagger UI**: `http://localhost:8000/docs`
 
 ---
 
-### 2️⃣ Khởi Chạy Frontend React (`fe/`)
+### 2️ Khởi Chạy Frontend React (`fe/`)
 
 Mở Terminal thứ 2 và thực hiện các lệnh sau:
 
@@ -45,11 +45,11 @@ cd fe
 npm run dev
 ```
 
-- 📱 **Địa chỉ ứng dụng Web (Mobile-First)**: `http://localhost:3000`
+- **Địa chỉ ứng dụng Web (Mobile-First)**: `http://localhost:3000`
 
 ---
 
-### 3️⃣ Khởi Chạy Phân Hệ AI & Big Data PySpark (Tùy chọn - `Food_calories_analysis/`)
+### 3️ Khởi Chạy Phân Hệ AI & Big Data PySpark (Tùy chọn - `Food_calories_analysis/`)
 
 Mở Terminal thứ 3 nếu muốn chạy ứng dụng nghiên cứu Big Data & PySpark Batch:
 
@@ -64,55 +64,48 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-- 📊 **Streamlit Dashboard Base**: `http://localhost:8501`
+- **Streamlit Dashboard Base**: `http://localhost:8501`
 
 ---
 
-## 🔑 Tài Khoản Thử Nghiệm Mặc Định (Demo Credentials)
+## Tài Khoản Thử Nghiệm Mặc Định (Demo Credentials)
 
-| Vai Trò           | Email / Username      | Mật Khẩu   | Quyền Hạn                                                 |
+| Vai Trò | Email / Username | Mật Khẩu | Quyền Hạn |
 | :---------------- | :-------------------- | :--------- | :-------------------------------------------------------- |
-| **User Thường**   | `demouser@uit.edu.vn` | `123456`   | Quét ảnh AI, Theo dõi Calorie, Nhập Cân nặng, Xem Lịch sử |
-| **Quản Trị Viên** | `admin@uit.edu.vn`    | `admin123` | Quản lý Ground-Truth DB món ăn, Duyệt báo cáo AI sai      |
+| **User Thường** | `demouser@uit.edu.vn` | `123456` | Quét ảnh AI, Theo dõi Calorie, Nhập Cân nặng, Xem Lịch sử |
+| **Quản Trị Viên** | `admin@uit.edu.vn` | `admin123` | Quản lý Ground-Truth DB món ăn, Duyệt báo cáo AI sai |
 
 ---
 
-## 🛠️ Kiến Trúc Hệ Thống (System Architecture)
+## ️ Kiến Trúc Hệ Thống (System Architecture)
 
 ```
 chuyende/
-├── fe/                                  # React 19 + TypeScript + Tailwind CSS (Mobile-First)
-│   ├── src/components/                  # Header (Thêm Switch Dark/Light Mode), BottomNav, Modals...
-│   ├── src/pages/                       # Dashboard, History, ProfilePage, AdminPage
-│   └── src/App.tsx                      # Main Controller & Dark/Light Theme Manager
-├── be/                                  # FastAPI + SQLAlchemy ORM + SQLite
-│   ├── app/models/best.pt               # Weights Mô Hình AI YOLOv8 (29.2 MB)
-│   ├── app/services/body_pose_analyzer.py # YOLO Pose (17 Keypoints) & Dynamic BMI Engine
-│   ├── app/services/analysis_engine.py  # 10-Level BMI Scale & Recommendation Engine
-│   └── health_app.db                    # Database SQLite
-├── BMI_10_LEVEL_SCALE.md                # Tài liệu Thang đo BMI 10 Cấp độ
-└── Food_calories_analysis/              # Phân Hệ Nghiên Cứu AI & PySpark Big Data Batch
-    ├── app.py                           # Streamlit Dashboard Demo
-    └── pipeline.py                      # PySpark UDF Batch Pipeline Engine
+├── fe/ # React 19 + TypeScript + Tailwind CSS (Mobile-First)
+│ ├── src/components/ # Header (Thêm Switch Dark/Light Mode), BottomNav, Modals...
+│ ├── src/pages/ # Dashboard, History, ProfilePage, AdminPage
+│ └── src/App.tsx # Main Controller & Dark/Light Theme Manager
+├── be/ # FastAPI + SQLAlchemy ORM + SQLite
+│ ├── app/models/best.pt # Weights Mô Hình AI YOLOv8 (29.2 MB)
+│ ├── app/services/body_pose_analyzer.py # YOLO Pose (17 Keypoints) & Dynamic BMI Engine
+│ ├── app/services/analysis_engine.py # 10-Level BMI Scale & Recommendation Engine
+│ └── health_app.db # Database SQLite
+├── BMI_10_LEVEL_SCALE.md # Tài liệu Thang đo BMI 10 Cấp độ
+└── Food_calories_analysis/ # Phân Hệ Nghiên Cứu AI & PySpark Big Data Batch
+ ├── app.py # Streamlit Dashboard Demo
+ └── pipeline.py # PySpark UDF Batch Pipeline Engine
 ```
 
 ---
 
-## 🧪 Kiểm Thử Tự Động (Verification Commands)
+## Kiểm Thử Tự Động (Verification Commands)
 
 - **Kiểm tra Build Frontend**:
-    ```bash
-    cd fe && npm run build
-    ```
+ ```bash
+ cd fe && npm run build
+ ```
 - **Kiểm tra Backend FastAPI**:
-    ```bash
-    cd be && python -c "from app.main import app; print('Backend OK:', app.title)"
-    ```
+ ```bash
+ cd be && python -c "from app.main import app; print('Backend OK:', app.title)"
+ ```
 
----
-
-## 📄 Báo Cáo & Tài Liệu Chi Tiết
-
-- **Kịch bản Live Demo & Thẻ Test Stripe**: [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md)
-- **Tài liệu Thang đo BMI 10 Cấp độ & AI Advisory**: [`BMI_10_LEVEL_SCALE.md`](BMI_10_LEVEL_SCALE.md)
-- **Tài liệu Phân tích vóc dáng YOLO Pose**: [`YOLO_POSE_ANALYSIS.md`](YOLO_POSE_ANALYSIS.md)

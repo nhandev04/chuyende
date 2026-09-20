@@ -1,6 +1,6 @@
-# 🥗 HealthLens AI - Frontend Web Application
+# HealthLens AI - Frontend Web Application
 
-## 🔑 Pre-Seeded Test Credentials
+## Pre-Seeded Test Credentials
 
 | Role | Email / Username | Password | Access Rights |
 | :--- | :--- | :--- | :--- |
@@ -31,15 +31,15 @@ If you are developing a production application, we recommend enabling type-aware
 
 ```json
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+ "$schema": "./node_modules/oxlint/configuration_schema.json",
+ "plugins": ["react", "typescript", "oxc"],
+ "options": {
+ "typeAware": true
+ },
+ "rules": {
+ "react/rules-of-hooks": "error",
+ "react/only-export-components": ["warn", { "allowConstantExport": true }]
+ }
 }
 ```
 
