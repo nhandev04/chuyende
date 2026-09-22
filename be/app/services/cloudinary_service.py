@@ -39,10 +39,14 @@ except Exception as e:
 
 def upload_image_to_cloudinary(file_path: str, folder: str = "health_lens_ai/scans") -> Optional[str]:
     """
-    Uploads a local image file to Cloudinary and returns its secure HTTPS CDN URL.
+    Uploads a local image file or base64 data string to Cloudinary and returns its secure HTTPS CDN URL.
     Returns None if Cloudinary is not configured or upload fails.
     """
-    if not is_configured or not os.path.exists(file_path):
+    if not is_configured or not file_path:
+        return None
+
+    is_data_uri = isinstance(file_path, str) and file_path.startswith("data:image/")
+    if not is_data_uri and not os.path.exists(file_path):
         return None
 
     try:

@@ -48,7 +48,10 @@ def analyze_food(
     temp_path = None
     try:
         if food_image and food_image.filename:
-            temp_path = os.path.join(TEMP_DIR, f"scan_{food_image.filename}")
+            import uuid
+            ext = os.path.splitext(food_image.filename)[1] or ".jpg"
+            safe_filename = f"scan_{uuid.uuid4().hex[:10]}{ext}"
+            temp_path = os.path.join(TEMP_DIR, safe_filename)
             with open(temp_path, "wb") as buffer:
                 shutil.copyfileobj(food_image.file, buffer)
 
@@ -138,11 +141,31 @@ def get_diet_recommendation(user_id: int, db: Session = Depends(get_db)):
 
 @router.post("/report/{user_id}")
 def create_ai_report(user_id: int, report_in: AIReportCreate, db: Session = Depends(get_db)):
+    final_image_url = report_in.image_url
+
+    # If image_url is a base64 data string, upload it to Cloudinary
+    if final_image_url and final_image_url.startswith("data:image/"):
+        try:
+            from app.services.cloudinary_service import upload_image_to_cloudinary
+            uploaded = upload_image_to_cloudinary(final_image_url, folder="health_lens_ai/user_reports")
+            if uploaded:
+                final_image_url = uploaded
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("Failed to upload base64 image to Cloudinary: %s", e)
+
+    # Fallback to FoodLog.image_url if report has food_log_id and no image_url
+    if not final_image_url and report_in.food_log_id:
+        flog = db.query(FoodLog).filter(FoodLog.id == report_in.food_log_id).first()
+        if flog and flog.image_url:
+            final_image_url = flog.image_url
+
     report = AIReport(
         user_id=user_id,
         food_log_id=report_in.food_log_id,
         original_prediction=report_in.original_prediction,
         user_correction=report_in.user_correction,
+        image_url=final_image_url,
         status="pending"
     )
     db.add(report)

@@ -61,8 +61,8 @@ def get_ai_reports(db: Session = Depends(get_db)):
     reports = db.query(AIReport).order_by(AIReport.created_at.desc()).all()
     result = []
     for r in reports:
-        image_url = None
-        if r.food_log_id:
+        image_url = r.image_url
+        if not image_url and r.food_log_id:
             flog = db.query(FoodLog).filter(FoodLog.id == r.food_log_id).first()
             if flog:
                 image_url = flog.image_url

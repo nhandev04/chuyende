@@ -38,6 +38,19 @@ def ensure_database_schema_migrated():
                     conn.execute(text("ALTER TABLE user_profiles ADD COLUMN avatar_url TEXT"))
                     conn.commit()
 
+                # Migration for ai_reports table
+                res_r = conn.execute(text("PRAGMA table_info(ai_reports)")).fetchall()
+                report_cols = [r[1] for r in res_r]
+                if "image_url" not in report_cols:
+                    conn.execute(text("ALTER TABLE ai_reports ADD COLUMN image_url TEXT"))
+                    conn.commit()
+        else:
+            with engine.connect() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT"))
+                conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT"))
+                conn.execute(text("ALTER TABLE ai_reports ADD COLUMN IF NOT EXISTS image_url TEXT"))
+                conn.commit()
+
         # Create all missing tables for SQLite or PostgreSQL (users, user_profiles, food_logs, weight_logs, food_database, ai_reports, subscription_history, rag_meal_plans)
         Base.metadata.create_all(bind=engine)
     except Exception as e:

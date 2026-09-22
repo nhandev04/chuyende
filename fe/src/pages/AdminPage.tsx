@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import type { FoodDatabaseItem, AIReportItem } from '../types';
-import { ShieldAlert, Database, AlertCircle, Plus, Trash2, CheckCircle2, XCircle, Users, Shield } from 'lucide-react';
+import { ShieldAlert, Database, AlertCircle, Plus, Trash2, CheckCircle2, XCircle, Users, Shield, RefreshCw, Maximize2, ImageOff, X } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
 interface AdminPageProps {
@@ -29,6 +29,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [stats, setStats] = useState<{ total_users: number; alert_users_count: number; pending_ai_reports: number; total_food_items: number } | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedReportImage, setSelectedReportImage] = useState<AIReportItem | null>(null);
 
   const isDark = theme === 'dark';
 
@@ -42,6 +44,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
   const [newFat, setNewFat] = useState(4);
 
   const loadAdminData = async () => {
+    setIsRefreshing(true);
     try {
       const [foodRes, reportRes, statRes, userRes] = await Promise.all([
         api.getFoodDatabase(),
@@ -55,12 +58,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
       setUsers(userRes);
     } catch (err) {
       console.warn("Error loading admin data:", err);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     loadAdminData();
-  }, []);
+  }, [activeTab]);
 
   const toast = useToast();
 
@@ -152,6 +157,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
             <p className="text-xs text-amber-500 font-medium">Manage standard food library, user correction reports & user roles</p>
           </div>
         </div>
+        <button
+          onClick={loadAdminData}
+          disabled={isRefreshing}
+          className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold border shadow-sm transition ${
+            isDark
+              ? 'bg-slate-800/90 hover:bg-slate-700 text-slate-200 border-slate-700'
+              : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+          }`}
+          title="Reload admin metrics & reports"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-amber-500' : 'text-amber-500'}`} />
+          <span>{isRefreshing ? 'Refreshing...' : 'Refresh Hub'}</span>
+        </button>
       </div>
 
       {actionMessage && (
@@ -335,68 +353,102 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
 
       {activeTab === 'reports' && (
         <div className={`border rounded-3xl p-5 shadow-xl space-y-4 ${cardBg}`}>
-          <h3 className={`font-extrabold text-sm ${textMain}`}>User Feedback & Recognition Reports</h3>
+          <div className="flex items-center justify-between">
+            <h3 className={`font-extrabold text-sm ${textMain}`}>
+              User Feedback & Recognition Reports ({reports.length})
+            </h3>
+            <button
+              onClick={loadAdminData}
+              disabled={isRefreshing}
+              className="flex items-center space-x-1.5 text-xs text-amber-500 hover:text-amber-400 font-bold px-3 py-1 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition"
+            >
+              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Refreshing...' : 'Refresh List'}</span>
+            </button>
+          </div>
           <div className="space-y-3">
-            {reports.map((report) => (
-              <div key={report.id} className={`p-4 rounded-2xl border flex items-center justify-between text-xs ${
-                isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
-              }`}>
-                <div className="flex items-center space-x-3">
-                  {report.image_url ? (
-                    <img
-                      src={report.image_url}
-                      alt="Food photo"
-                      className="w-12 h-12 rounded-xl object-cover border border-slate-700 shadow"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 text-[10px] font-bold">
-                      No photo
+            {reports.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 text-xs">
+                No user feedback reports found.
+              </div>
+            ) : (
+              reports.map((report) => (
+                <div key={report.id} className={`p-4 rounded-2xl border flex items-center justify-between text-xs ${
+                  isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  <div className="flex items-center space-x-3.5">
+                    {report.image_url ? (
+                      <div
+                        onClick={() => setSelectedReportImage(report)}
+                        className="w-14 h-14 rounded-2xl overflow-hidden border border-slate-700 shadow-md shrink-0 cursor-pointer relative group bg-slate-950 flex items-center justify-center"
+                        title="Click to view full photo"
+                      >
+                        <img
+                          src={report.image_url}
+                          alt="Food report"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                          <Maximize2 className="w-4 h-4" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700/80 flex flex-col items-center justify-center text-slate-500 shrink-0">
+                        <ImageOff className="w-4 h-4 mb-0.5" />
+                        <span className="text-[9px] font-semibold">No photo</span>
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-rose-500">AI predicted: "{report.original_prediction}"</span>
+                        <span className={textSub}>→</span>
+                        <span className="font-bold text-emerald-500">User correction: "{report.user_correction}"</span>
+                      </div>
+                      <p className={`text-[11px] mt-1 ${textSub}`}>
+                        Report #{report.id} • User #{report.user_id} • Date: {new Date(report.created_at).toLocaleDateString('en-US')}
+                        {report.image_url ? ' • 📷 Photo attached' : ''}
+                      </p>
                     </div>
-                  )}
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-rose-500">AI predicted: "{report.original_prediction}"</span>
-                      <span className={textSub}>→</span>
-                      <span className="font-bold text-emerald-500">User correction: "{report.user_correction}"</span>
-                    </div>
-                    <p className={`text-[11px] mt-1 ${textSub}`}>User #{report.user_id} • Date: {new Date(report.created_at).toLocaleDateString('en-US')}</p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className={`font-bold px-2.5 py-1 rounded-full text-[10px] ${
+                      report.status === 'pending'
+                        ? 'bg-amber-500/20 text-amber-500'
+                        : report.status === 'resolved'
+                        ? 'bg-emerald-500/20 text-emerald-500'
+                        : 'bg-slate-500/20 text-slate-400'
+                    }`}>
+                      {report.status === 'pending' ? 'Pending' : report.status === 'resolved' ? 'Verified' : 'Dismissed'}
+                    </span>
+
+                    {report.status === 'pending' && (
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => handleReportAction(report.id, 'resolved', true)}
+                          className="p-1.5 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-bold rounded-xl text-xs flex items-center space-x-1 transition"
+                          title="Verify & Add to standard library"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Verify & Add</span>
+                        </button>
+                        <button
+                          onClick={() => handleReportAction(report.id, 'dismissed', false)}
+                          className="p-1.5 bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white font-bold rounded-xl text-xs flex items-center space-x-1 transition"
+                          title="Dismiss report"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Dismiss</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                <div className="flex items-center space-x-2">
-                  <span className={`font-bold px-2.5 py-1 rounded-full text-[10px] ${
-                    report.status === 'pending'
-                      ? 'bg-amber-500/20 text-amber-500'
-                      : report.status === 'resolved'
-                      ? 'bg-emerald-500/20 text-emerald-500'
-                      : 'bg-slate-500/20 text-slate-400'
-                  }`}>
-                    {report.status === 'pending' ? 'Pending' : report.status === 'resolved' ? 'Verified' : 'Dismissed'}
-                  </span>
-
-                  {report.status === 'pending' && (
-                    <div className="flex space-x-1">
-                      <button
-                        onClick={() => handleReportAction(report.id, 'resolved', true)}
-                        className="p-1.5 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-bold rounded-xl text-xs flex items-center space-x-1 transition"
-                        title="Verify & Add to standard library"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Verify & Add</span>
-                      </button>
-                      <button
-                        onClick={() => handleReportAction(report.id, 'dismissed', false)}
-                        className="p-1.5 bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white font-bold rounded-xl text-xs flex items-center space-x-1 transition"
-                        title="Dismiss report"
-                      >
-                        <XCircle className="w-3.5 h-3.5" />
-                        <span>Dismiss</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       )}
@@ -464,6 +516,75 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox / Image Viewer Modal */}
+      {selectedReportImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-5 shadow-2xl text-white space-y-4 relative">
+            <button
+              onClick={() => setSelectedReportImage(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1.5 rounded-full hover:bg-slate-800"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-sm font-extrabold text-white flex items-center space-x-2">
+              <span>Reported Food Photo</span>
+              <span className="text-xs text-amber-500 font-normal">#{selectedReportImage.id}</span>
+            </h3>
+
+            {selectedReportImage.image_url ? (
+              <div className="rounded-2xl overflow-hidden border border-slate-800 max-h-80 bg-slate-950 flex items-center justify-center">
+                <img
+                  src={selectedReportImage.image_url}
+                  alt="Full food report photo"
+                  className="max-h-80 w-auto object-contain mx-auto"
+                />
+              </div>
+            ) : (
+              <div className="py-12 text-center text-slate-500 text-xs">No image attached</div>
+            )}
+
+            <div className="bg-slate-800/60 p-3.5 rounded-2xl border border-slate-700/60 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">AI Model Output:</span>
+                <span className="font-bold text-rose-400">"{selectedReportImage.original_prediction}"</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">User Verified As:</span>
+                <span className="font-bold text-emerald-400">"{selectedReportImage.user_correction}"</span>
+              </div>
+              <div className="flex items-center justify-between pt-1.5 border-t border-slate-700/60 text-[11px] text-slate-400">
+                <span>User #{selectedReportImage.user_id}</span>
+                <span>{new Date(selectedReportImage.created_at).toLocaleString('en-US')}</span>
+              </div>
+            </div>
+
+            {selectedReportImage.status === 'pending' && (
+              <div className="flex space-x-2 pt-1">
+                <button
+                  onClick={() => {
+                    handleReportAction(selectedReportImage.id, 'resolved', true);
+                    setSelectedReportImage(null);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center space-x-1 transition shadow-lg shadow-emerald-500/20"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Verify & Add to Food Library</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleReportAction(selectedReportImage.id, 'dismissed', false);
+                    setSelectedReportImage(null);
+                  }}
+                  className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-rose-400 font-bold text-xs transition"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

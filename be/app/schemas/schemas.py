@@ -155,6 +155,7 @@ class AIReportCreate(BaseModel):
     food_log_id: Optional[int] = None
     original_prediction: str
     user_correction: str
+    image_url: Optional[str] = None
 
 # Admin Schemas
 class FoodDatabaseCreate(BaseModel):

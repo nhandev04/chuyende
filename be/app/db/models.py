@@ -98,6 +98,7 @@ class AIReport(Base):
     food_log_id = Column(Integer, ForeignKey("food_logs.id"), nullable=True)
     original_prediction = Column(String, nullable=False)
     user_correction = Column(String, nullable=False)
+    image_url = Column(String, nullable=True)
     status = Column(String, default="pending") # pending, resolved
     created_at = Column(DateTime, default=datetime.utcnow)
 

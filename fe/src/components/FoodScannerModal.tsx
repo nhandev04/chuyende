@@ -14,10 +14,12 @@ interface FoodScannerModalProps {
 }
 
 export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onClose, userId, user, onFoodLogged, onOpenSubscription }) => {
+    const toast = useToast();
     const [mode, setMode] = useState<"image" | "text">("image");
     const [textPrompt, setTextPrompt] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imageBase64, setImageBase64] = useState<string | null>(null);
     const [isScanning, setIsScanning] = useState(false);
     const [result, setResult] = useState<AIAnalysisResult | null>(null);
 
@@ -108,12 +110,23 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
             const file = e.target.files[0];
             setImageFile(file);
             setImagePreview(URL.createObjectURL(file));
+
+            // Generate Base64 data URL so we always have a persistent image fallback
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (typeof reader.result === 'string') {
+                    setImageBase64(reader.result);
+                }
+            };
+            reader.readAsDataURL(file);
+
             handleScan(file);
         }
     };
 
     const handleSaveToLog = async () => {
         if (!result) return;
+        const logImg = result.image_url || imageBase64 || undefined;
         await api.createFoodLog(userId, {
             meal_type: mealType,
             food_name: editFoodName,
@@ -122,14 +135,11 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
             protein_g: editProtein,
             carbs_g: editCarbs,
             fat_g: editFat,
-            image_url: result.image_url || imagePreview || undefined,
-
+            image_url: logImg,
         });
         onFoodLogged();
         onClose();
     };
-
-    const toast = useToast();
 
     const handleReportError = async () => {
         if (!reportCorrection.trim()) {
@@ -138,7 +148,20 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
         }
         if (!result) return;
         try {
-            await api.submitAIReport(userId, result.food_name, reportCorrection);
+            // Prioritize Cloudinary HTTPS URL from YOLO scan, fallback to persistent Base64
+            let reportImg = result.image_url;
+            if (!reportImg && imageBase64) {
+                reportImg = imageBase64;
+            } else if (!reportImg && imageFile) {
+                reportImg = await new Promise<string | undefined>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = () => resolve(undefined);
+                    reader.readAsDataURL(imageFile);
+                });
+            }
+
+            await api.submitAIReport(userId, result.food_name, reportCorrection, undefined, reportImg);
             setReportSuccess(true);
             toast.success(`Reported AI misclassification: "${result.food_name}" -> "${reportCorrection}"`, "Report Sent to Admin");
             setTimeout(() => {
@@ -307,6 +330,21 @@ export const FoodScannerModal: React.FC<FoodScannerModalProps> = ({ isOpen, onCl
                 {/* Result Preview & Edit Section */}
                 {result && !isScanning && (
                     <div className="space-y-4 animate-fadeIn">
+                        {/* Food Image Preview if available */}
+                        {(result.image_url || imagePreview) && (
+                            <div className="relative rounded-2xl overflow-hidden border border-slate-700/80 max-h-48 bg-slate-950 flex items-center justify-center">
+                                <img
+                                    src={result.image_url || imagePreview || undefined}
+                                    alt="Scanned meal"
+                                    className="w-full max-h-48 object-cover"
+                                />
+                                <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-slate-950/70 backdrop-blur-sm text-[10px] text-emerald-400 font-semibold border border-emerald-500/30 flex items-center space-x-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    <span>Analyzed by HealthLens AI</span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Confidence & Image preview */}
                         <div className="flex items-center justify-between bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
                             <div className="flex items-center space-x-2">

@@ -338,12 +338,13 @@ export const api = {
         }
     },
 
-    async submitAIReport(userId: number, original: string, correction: string, foodLogId?: number): Promise<void> {
+    async submitAIReport(userId: number, original: string, correction: string, foodLogId?: number, imageUrl?: string): Promise<void> {
         try {
             await client.post(`/ai/report/${userId}`, {
                 food_log_id: foodLogId,
                 original_prediction: original,
                 user_correction: correction,
+                image_url: imageUrl,
             });
         } catch (err: any) {
             const message = err.response?.data?.detail || "Failed to submit AI error report.";
