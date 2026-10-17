@@ -109,7 +109,7 @@ export const api = {
         try {
             const res = await client.get("/subscription/plans");
             return res.data.plans;
-        } catch (err: any) {
+        } catch {
             throw new Error("Failed to load subscription plans from server.");
         }
     },
@@ -197,7 +197,7 @@ export const api = {
         try {
             const res = await client.get(`/ai/rag-meal-plan/${userId}/latest`);
             return res.data;
-        } catch (err: any) {
+        } catch {
             return { has_plan: false };
         }
     },
@@ -228,7 +228,7 @@ export const api = {
         try {
             const res = await client.get(`/profile/${userId}`);
             return res.data;
-        } catch (err: any) {
+        } catch {
             throw new Error("Failed to load user profile information.");
         }
     },
@@ -291,7 +291,7 @@ export const api = {
         try {
             const res = await client.get(`/food-logs/${userId}/summary`);
             return res.data;
-        } catch (err: any) {
+        } catch {
             throw new Error("Failed to load nutrition summary stats.");
         }
     },
@@ -333,7 +333,7 @@ export const api = {
         try {
             const res = await client.get(`/ai/recommendations/${userId}`);
             return res.data;
-        } catch (err: any) {
+        } catch {
             throw new Error("Failed to load AI recommendations.");
         }
     },
@@ -362,7 +362,7 @@ export const api = {
         try {
             const res = await client.get("/admin/stats");
             return res.data;
-        } catch (err: any) {
+        } catch {
             throw new Error("Failed to load Admin statistics.");
         }
     },

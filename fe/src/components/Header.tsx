@@ -1,41 +1,56 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { User, UserProfile } from '../types';
 import { Sparkles, ShieldAlert, LogOut, Sun, Moon, Clock, User as UserIcon, Crown, ChevronDown } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useModal } from '../contexts/ModalContext';
 
 interface HeaderProps {
-  user: User | null;
-  profile: UserProfile | null;
+  user?: User | null;
+  profile?: UserProfile | null;
   activeTab?: 'dashboard' | 'history' | 'profile' | 'admin';
   onNavigateTab?: (tab: 'dashboard' | 'history' | 'profile' | 'admin') => void;
-  onOpenAuth: () => void;
-  onOpenProfile: () => void;
-  onOpenSubscription: () => void;
+  onOpenAuth?: () => void;
+  onOpenProfile?: () => void;
+  onOpenSubscription?: () => void;
   onOpenRAGMealPlan?: () => void;
-  onToggleAdmin: () => void;
-  isAdminView: boolean;
-  onLogout: () => void;
-  theme: 'dark' | 'light';
-  onToggleTheme: () => void;
+  onToggleAdmin?: () => void;
+  isAdminView?: boolean;
+  onLogout?: () => void;
+  theme?: 'dark' | 'light';
+  onToggleTheme?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  user,
+  user: propUser,
   activeTab = 'dashboard',
   onNavigateTab,
-  onOpenAuth,
-  onOpenProfile,
-  onOpenSubscription,
-  onOpenRAGMealPlan,
+  onOpenAuth: propOnOpenAuth,
+  onOpenProfile: propOnOpenProfile,
+  onOpenSubscription: propOnOpenSubscription,
+  onOpenRAGMealPlan: propOnOpenRAGMealPlan,
   onToggleAdmin,
   isAdminView,
-  onLogout,
-  theme,
-  onToggleTheme
+  onLogout: propOnLogout,
+  theme: propTheme,
+  onToggleTheme: propOnToggleTheme,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const isDark = theme === 'dark';
+  // Consume contexts with fallback to props for backward-compatibility
+  const auth = useAuth();
+  const themeContext = useTheme();
+  const modal = useModal();
+
+  const user = propUser !== undefined ? propUser : auth.user;
+  const isDark = propTheme !== undefined ? propTheme === 'dark' : themeContext.isDark;
+  const handleToggleTheme = propOnToggleTheme || themeContext.toggleTheme;
+  const handleOpenAuth = propOnOpenAuth || (() => modal.openModal('AUTH'));
+  const handleOpenSubscription = propOnOpenSubscription || (() => modal.openModal('SUBSCRIPTION'));
+  const handleOpenRAGMealPlan = propOnOpenRAGMealPlan || (() => modal.openModal('RAG_MEAL_PLAN'));
+  const handleLogout = propOnLogout || auth.logout;
+
   const planName = user?.role === 'admin' ? 'ADMIN' : (user?.plan || 'STANDARD').toUpperCase();
 
   // Close dropdown on outside click
@@ -52,8 +67,6 @@ export const Header: React.FC<HeaderProps> = ({
   const handleGoDashboard = () => {
     if (onNavigateTab) {
       onNavigateTab('dashboard');
-    } else {
-      window.location.reload();
     }
   };
 
@@ -63,12 +76,26 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
+  const handleGoProfile = () => {
+    setIsDropdownOpen(false);
+    if (propOnOpenProfile) {
+      propOnOpenProfile();
+    } else if (onNavigateTab) {
+      onNavigateTab('profile');
+    }
+  };
+
   return (
-    <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg transition-colors duration-300 ${isDark ? 'bg-slate-900/90 border-slate-800 text-white' : 'bg-white/95 border-slate-200 text-slate-900'
-      }`}>
+    <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-3 py-2.5 sm:px-4 sm:py-3 shadow-lg transition-colors duration-300 ${
+      isDark ? 'bg-slate-900/90 border-slate-800 text-white' : 'bg-white/95 border-slate-200 text-slate-900'
+    }`}>
       <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
         {/* Brand Logo -> Navigates to Dashboard */}
-        <div className="flex items-center space-x-2 cursor-pointer shrink-0 hover:opacity-95 transition" onClick={handleGoDashboard} title="Go to Dashboard">
+        <div
+          className="flex items-center space-x-2 cursor-pointer shrink-0 hover:opacity-95 transition"
+          onClick={handleGoDashboard}
+          title="Go to Dashboard"
+        >
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-md shadow-emerald-500/20">
             <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
           </div>
@@ -86,12 +113,13 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2">
           {/* Dark / Light Theme Toggle */}
           <button
-            onClick={onToggleTheme}
-            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            className={`p-2 rounded-xl border transition-all ${isDark
+            onClick={handleToggleTheme}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className={`p-2 rounded-xl border transition-all ${
+              isDark
                 ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700'
                 : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-              }`}
+            }`}
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -102,12 +130,13 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={handleGoHistory}
                 title="View Meal Log History & Weight Trends"
-                className={`p-2 rounded-xl border transition-all flex items-center justify-center ${activeTab === 'history'
+                className={`p-2 rounded-xl border transition-all flex items-center justify-center ${
+                  activeTab === 'history'
                     ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md'
                     : isDark
-                      ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-emerald-400 hover:bg-slate-700'
-                      : 'bg-slate-100 border-slate-300 text-slate-700 hover:text-emerald-600 hover:bg-slate-200'
-                  }`}
+                    ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-emerald-400 hover:bg-slate-700'
+                    : 'bg-slate-100 border-slate-300 text-slate-700 hover:text-emerald-600 hover:bg-slate-200'
+                }`}
               >
                 <Clock className="w-4 h-4 stroke-[2.2]" />
               </button>
@@ -116,15 +145,16 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={`flex items-center space-x-2 p-1.5 sm:px-3 sm:py-1.5 rounded-2xl border text-xs font-semibold transition-all ${isDark
+                  className={`flex items-center space-x-2 p-1.5 sm:px-3 sm:py-1.5 rounded-2xl border text-xs font-semibold transition-all ${
+                    isDark
                       ? 'bg-slate-800/80 hover:bg-slate-700 border-slate-700 text-slate-200'
                       : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
-                    }`}
+                  }`}
                 >
                   {user.avatar_url ? (
                     <img
                       src={user.avatar_url}
-                      alt={user.full_name || "Avatar"}
+                      alt={user.full_name || 'Avatar'}
                       className="w-6 h-6 rounded-full object-cover border border-emerald-500 shadow-sm"
                     />
                   ) : (
@@ -135,22 +165,32 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="hidden sm:inline-block max-w-[90px] truncate">{user.full_name || 'Account'}</span>
 
                   {/* Plan Badge */}
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase ${user.role === 'admin'
-                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      : user.plan === 'pro'
+                  <span
+                    className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase ${
+                      user.role === 'admin'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : user.plan === 'pro'
                         ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
                         : 'bg-emerald-500/20 text-emerald-400'
-                    }`}>
+                    }`}
+                  >
                     {planName}
                   </span>
 
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-emerald-400' : 'text-slate-400'}`} />
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      isDropdownOpen ? 'rotate-180 text-emerald-400' : 'text-slate-400'
+                    }`}
+                  />
                 </button>
 
                 {/* Dropdown Popover Menu */}
                 {isDropdownOpen && (
-                  <div className={`absolute right-0 mt-2 w-64 rounded-2xl border shadow-2xl p-2 z-50 backdrop-blur-xl animate-fadeIn ${isDark ? 'bg-slate-900/95 border-slate-800 text-white' : 'bg-white/95 border-slate-200 text-slate-900'
-                    }`}>
+                  <div
+                    className={`absolute right-0 mt-2 w-64 rounded-2xl border shadow-2xl p-2 z-50 backdrop-blur-xl animate-fadeIn ${
+                      isDark ? 'bg-slate-900/95 border-slate-800 text-white' : 'bg-white/95 border-slate-200 text-slate-900'
+                    }`}
+                  >
                     {/* User Summary Header */}
                     <div className="p-3 border-b border-slate-800 mb-1 flex items-center space-x-3">
                       {user.avatar_url ? (
@@ -170,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="space-y-1 text-xs">
                       {/* Personal Profile */}
                       <button
-                        onClick={() => { setIsDropdownOpen(false); onOpenProfile(); }}
+                        onClick={handleGoProfile}
                         className="w-full flex items-center space-x-2.5 p-2.5 rounded-xl hover:bg-emerald-500/10 hover:text-emerald-400 font-semibold transition"
                       >
                         <UserIcon className="w-4 h-4 text-emerald-400" />
@@ -178,19 +218,23 @@ export const Header: React.FC<HeaderProps> = ({
                       </button>
 
                       {/* AI Meal Planner */}
-                      {onOpenRAGMealPlan && (
-                        <button
-                          onClick={() => { setIsDropdownOpen(false); onOpenRAGMealPlan(); }}
-                          className="w-full flex items-center space-x-2.5 p-2.5 rounded-xl hover:bg-teal-500/10 hover:text-teal-400 font-semibold transition"
-                        >
-                          <Sparkles className="w-4 h-4 text-teal-400" />
-                          <span>AI Smart Meal Planner</span>
-                        </button>
-                      )}
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          handleOpenRAGMealPlan();
+                        }}
+                        className="w-full flex items-center space-x-2.5 p-2.5 rounded-xl hover:bg-teal-500/10 hover:text-teal-400 font-semibold transition"
+                      >
+                        <Sparkles className="w-4 h-4 text-teal-400" />
+                        <span>AI Smart Meal Planner</span>
+                      </button>
 
                       {/* Upgrade Subscription */}
                       <button
-                        onClick={() => { setIsDropdownOpen(false); onOpenSubscription(); }}
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          handleOpenSubscription();
+                        }}
                         className="w-full flex items-center space-x-2.5 p-2.5 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-400 font-semibold transition"
                       >
                         <Crown className="w-4 h-4 text-amber-400" />
@@ -198,9 +242,12 @@ export const Header: React.FC<HeaderProps> = ({
                       </button>
 
                       {/* Admin Mode Toggle */}
-                      {user.role === 'admin' && (
+                      {user.role === 'admin' && onToggleAdmin && (
                         <button
-                          onClick={() => { setIsDropdownOpen(false); onToggleAdmin(); }}
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            onToggleAdmin();
+                          }}
                           className="w-full flex items-center space-x-2.5 p-2.5 rounded-xl hover:bg-amber-500/10 hover:text-amber-400 font-semibold transition"
                         >
                           <ShieldAlert className="w-4 h-4 text-amber-400" />
@@ -212,7 +259,10 @@ export const Header: React.FC<HeaderProps> = ({
 
                       {/* Logout */}
                       <button
-                        onClick={() => { setIsDropdownOpen(false); onLogout(); }}
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          handleLogout();
+                        }}
                         className="w-full flex items-center space-x-2.5 p-2.5 rounded-xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 font-semibold transition"
                       >
                         <LogOut className="w-4 h-4 text-rose-400" />
@@ -225,7 +275,7 @@ export const Header: React.FC<HeaderProps> = ({
             </>
           ) : (
             <button
-              onClick={onOpenAuth}
+              onClick={handleOpenAuth}
               className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 rounded-xl font-bold text-xs shadow-md shadow-emerald-500/20 transition-all shrink-0"
             >
               Sign In

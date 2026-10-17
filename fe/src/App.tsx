@@ -1,60 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useUser, useClerk } from '@clerk/clerk-react';
-import type { User, UserProfile } from './types';
-
+import { useState, useEffect, Suspense, lazy } from 'react';
+import { useAuth } from './contexts/AuthContext';
+import { useTheme } from './contexts/ThemeContext';
+import { useData } from './contexts/DataContext';
+import { useToast } from './components/Toast';
 import { api } from './services/api';
+
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
-import { AuthModal } from './components/AuthModal';
-import { OnboardingModal } from './components/OnboardingModal';
-import { FoodScannerModal } from './components/FoodScannerModal';
-import { WeightLogModal } from './components/WeightLogModal';
+import { GlobalModals } from './components/modals/GlobalModals';
+import { LoadingFallback } from './components/LoadingFallback';
 
-import { Dashboard } from './pages/Dashboard';
-import { History } from './pages/History';
-import { ProfilePage } from './pages/ProfilePage';
-import { AdminPage } from './pages/AdminPage';
+// Code-split pages via React.lazy for high performance and fast initial load
+const Dashboard = lazy(() =>
+  import('./pages/Dashboard').then((m) => ({ default: m.Dashboard }))
+);
+const History = lazy(() =>
+  import('./pages/History').then((m) => ({ default: m.History }))
+);
+const ProfilePage = lazy(() =>
+  import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage }))
+);
+const AdminPage = lazy(() =>
+  import('./pages/AdminPage').then((m) => ({ default: m.AdminPage }))
+);
 
-import { SubscriptionModal } from './components/SubscriptionModal';
-import { RAGMealPlanModal } from './components/RAGMealPlanModal';
+type ActiveTab = 'dashboard' | 'history' | 'profile' | 'admin';
 
-
-import { useToast } from './components/Toast';
-
-function useClerkSafe() {
-  try {
-    return useClerk();
-  } catch {
-    return null;
-  }
-}
-
-function ClerkUserSync({ onSynced }: { onSynced: (user: User) => void }) {
-
-  const { isSignedIn, user: clerkUser } = useUser();
-  const [syncedId, setSyncedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function sync() {
-      if (isSignedIn && clerkUser && clerkUser.id !== syncedId) {
-        try {
-          const email = clerkUser.primaryEmailAddress?.emailAddress || `${clerkUser.id}@clerk.user`;
-          const fullName = clerkUser.fullName || clerkUser.firstName || '';
-          const backendUser = await api.clerkSync(clerkUser.id, email, fullName);
-          setSyncedId(clerkUser.id);
-          onSynced(backendUser);
-        } catch (err) {
-          console.warn("Clerk sync notice:", err);
-        }
-      }
-    }
-    sync();
-  }, [isSignedIn, clerkUser, syncedId, onSynced]);
-
-  return null;
-}
-
-const getTabFromPath = (): 'dashboard' | 'history' | 'profile' | 'admin' => {
+const getTabFromPath = (): ActiveTab => {
   const path = window.location.pathname.replace('/', '').toLowerCase();
   if (path === 'profile') return 'profile';
   if (path === 'history') return 'history';
@@ -63,18 +35,14 @@ const getTabFromPath = (): 'dashboard' | 'history' | 'profile' | 'admin' => {
 };
 
 export function App() {
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    const saved = localStorage.getItem('health_app_theme');
-    return (saved === 'light' || saved === 'dark') ? saved : 'dark';
-  });
+  const { isDark } = useTheme();
+  const { user, updateUser } = useAuth();
+  const { invalidateData } = useData();
+  const toast = useToast();
 
-  const [user, setUser] = useState<User | null>(() => api.getStoredUser());
+  const [activeTab, setActiveTab] = useState<ActiveTab>(getTabFromPath);
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'profile' | 'admin'>(getTabFromPath);
-  const [refreshKey, setRefreshKey] = useState<number>(0);
-
-  const navigateTab = (tab: 'dashboard' | 'history' | 'profile' | 'admin') => {
+  const navigateTab = (tab: ActiveTab) => {
     setActiveTab(tab);
     const targetPath = tab === 'dashboard' ? '/' : `/${tab}`;
     if (window.location.pathname !== targetPath) {
@@ -90,35 +58,7 @@ export function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Modals
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
-  const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
-  const [isRAGModalOpen, setIsRAGModalOpen] = useState(false);
-
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    localStorage.setItem('health_app_theme', nextTheme);
-  };
-
-  useEffect(() => {
-    async function loadUserProfile() {
-      if (user) {
-        const p = await api.getProfile(user.user_id);
-        setProfile(p);
-      } else {
-        setProfile(null);
-      }
-    }
-    loadUserProfile();
-  }, [user, refreshKey]);
-
-  const toast = useToast();
-
+  // Handle Stripe Payment Redirect Verification
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get('payment');
@@ -126,228 +66,61 @@ export function App() {
 
     if (paymentStatus === 'success' && sessionId) {
       api.verifyStripeSession(sessionId).then((updatedUser) => {
-        setUser(updatedUser);
-        setRefreshKey(prev => prev + 1);
+        updateUser(updatedUser);
+        invalidateData('all');
         window.history.replaceState({}, document.title, window.location.pathname);
-        toast.success(`Your account has been upgraded to ${(updatedUser.plan || 'PLUS').toUpperCase()} tier.`, '🎉 Payment Verified');
-      }).catch((err) => {
+        toast.success(
+          `Your account has been upgraded to ${(updatedUser.plan || 'PLUS').toUpperCase()} tier.`,
+          '🎉 Payment Verified'
+        );
+      }).catch((err: unknown) => {
         window.history.replaceState({}, document.title, window.location.pathname);
-        toast.error(err.message || "Unable to verify payment session. Security verification failed.", "Payment Failed");
+        const errMsg = err instanceof Error ? err.message : 'Unable to verify payment session.';
+        toast.error(errMsg, 'Payment Failed');
       });
     } else if (paymentStatus === 'success' && !sessionId) {
       window.history.replaceState({}, document.title, window.location.pathname);
-      toast.error("Invalid payment parameters. Security verification failed.", "Payment Error");
+      toast.error('Invalid payment parameters. Security verification failed.', 'Payment Error');
     }
-  }, []);
-
-
-
-
-
-  const handleAuthSuccess = async (authUser: User, isNewRegistration: boolean = false) => {
-    setUser(authUser);
-    api.setStoredUser(authUser, authUser.access_token);
-
-    const p = await api.getProfile(authUser.user_id);
-    setProfile(p);
-
-    if (authUser.role === 'admin') {
-      navigateTab('admin');
-    } else {
-      navigateTab('dashboard');
-    }
-
-    if (isNewRegistration) {
-      setTimeout(() => {
-        setIsOnboardingOpen(true);
-      }, 300);
-    }
-  };
-
-  const clerk = useClerkSafe();
-
-  const handleLogout = async () => {
-    api.setStoredUser(null);
-    setUser(null);
-    setProfile(null);
-
-    if (clerk && clerk.signOut) {
-      try {
-        await clerk.signOut();
-      } catch (err) {
-        console.warn("Clerk signout notice:", err);
-      }
-    }
-
-    localStorage.removeItem("health_app_user");
-    localStorage.removeItem("health_app_token");
-    sessionStorage.clear();
-
-    navigateTab('dashboard');
-  };
-
+  }, [updateUser, invalidateData, toast]);
 
   const handleToggleAdmin = () => {
-    if (activeTab === 'admin') {
-      navigateTab('dashboard');
-    } else {
-      navigateTab('admin');
-    }
+    navigateTab(activeTab === 'admin' ? 'dashboard' : 'admin');
   };
-
-  const handleFoodLogged = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const handlePlanUpgraded = (updatedUser: User) => {
-    setUser(updatedUser);
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const isDark = theme === 'dark';
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
-      } font-sans selection:bg-emerald-500 selection:text-slate-950`}>
-
-      <ClerkUserSync onSynced={(syncedUser) => handleAuthSuccess(syncedUser, false)} />
-
+    <div
+      className={`min-h-screen transition-colors duration-300 ${
+        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+      } font-sans selection:bg-emerald-500 selection:text-slate-950`}
+    >
       {/* Header Bar */}
-
       <Header
-        user={user}
-        profile={profile}
         activeTab={activeTab}
         onNavigateTab={navigateTab}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenProfile={() => navigateTab('profile')}
-        onOpenSubscription={() => setIsSubscriptionOpen(true)}
-        onOpenRAGMealPlan={() => setIsRAGModalOpen(true)}
         onToggleAdmin={handleToggleAdmin}
-
         isAdminView={activeTab === 'admin'}
-        onLogout={handleLogout}
-        theme={theme}
-        onToggleTheme={toggleTheme}
       />
 
-      {/* Main Content Area */}
+      {/* Main Content Area with Suspense Code-splitting */}
       <main className="min-h-[calc(100vh-140px)] pb-28 pt-2 sm:pb-12 sm:pt-4 px-2 sm:px-4">
-        {activeTab === 'dashboard' && (
-          <Dashboard
-            user={user}
-            profile={profile}
-            onOpenAuth={() => setIsAuthOpen(true)}
-            onOpenScanner={() => setIsScannerOpen(true)}
-            onOpenWeightModal={() => setIsWeightModalOpen(true)}
-            onOpenOnboarding={() => setIsOnboardingOpen(true)}
-            onOpenSubscription={() => setIsSubscriptionOpen(true)}
-            onOpenRAGMealPlan={() => setIsRAGModalOpen(true)}
-            theme={theme}
-            refreshKey={refreshKey}
-          />
-        )}
-
-        {activeTab === 'history' && (
-          <History userId={user?.user_id || 0} theme={theme} />
-        )}
-
-        {activeTab === 'profile' && (
-          <ProfilePage
-            user={user}
-            profile={profile}
-            onUpdateProfile={(updated) => setProfile(updated)}
-            onLogout={handleLogout}
-            onOpenSubscription={() => setIsSubscriptionOpen(true)}
-            theme={theme}
-          />
-        )}
-
-
-        {activeTab === 'admin' && (
-          <AdminPage theme={theme} />
-        )}
+        <Suspense fallback={<LoadingFallback message="Loading view..." />}>
+          {activeTab === 'dashboard' && <Dashboard />}
+          {activeTab === 'history' && <History />}
+          {activeTab === 'profile' && <ProfilePage />}
+          {activeTab === 'admin' && <AdminPage />}
+        </Suspense>
       </main>
 
       {/* Sticky Bottom Navigation (Mobile View) */}
       <BottomNav
         activeTab={activeTab}
         setActiveTab={navigateTab}
-        onOpenScanner={() => setIsScannerOpen(true)}
         isAdmin={user?.role === 'admin'}
-        theme={theme}
       />
 
-      {/* Modals */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onSuccess={(u, isNew) => handleAuthSuccess(u, isNew)}
-      />
-
-      <SubscriptionModal
-        isOpen={isSubscriptionOpen}
-        onClose={() => setIsSubscriptionOpen(false)}
-        currentUser={user}
-        onPlanUpgraded={handlePlanUpgraded}
-      />
-
-      <OnboardingModal
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        userId={user?.user_id || 1}
-        user={user}
-        currentProfile={profile}
-        onSaveProfile={(p) => {
-          setProfile(p);
-          setRefreshKey(prev => prev + 1);
-        }}
-        onOpenSubscription={() => {
-          setIsOnboardingOpen(false);
-          setIsSubscriptionOpen(true);
-        }}
-      />
-
-      <FoodScannerModal
-        isOpen={isScannerOpen}
-        onClose={() => setIsScannerOpen(false)}
-        userId={user?.user_id || 1}
-        user={user}
-        onFoodLogged={handleFoodLogged}
-        onOpenSubscription={() => {
-          setIsScannerOpen(false);
-          setIsSubscriptionOpen(true);
-        }}
-      />
-
-      <WeightLogModal
-        isOpen={isWeightModalOpen}
-        onClose={() => setIsWeightModalOpen(false)}
-        userId={user?.user_id || 1}
-        currentWeight={profile?.current_weight_kg || 65}
-        onWeightRecorded={(w) => {
-          if (profile) {
-            setProfile({ ...profile, current_weight_kg: w });
-          }
-          setRefreshKey(prev => prev + 1);
-        }}
-      />
-
-      {isRAGModalOpen && (
-
-        <RAGMealPlanModal
-          user={user}
-          onClose={() => setIsRAGModalOpen(false)}
-          onOpenSubscription={() => {
-            setIsRAGModalOpen(false);
-            setIsSubscriptionOpen(true);
-          }}
-          onFoodLogged={handleFoodLogged}
-          theme={theme}
-        />
-      )}
-
-
+      {/* Centralized Global Modals */}
+      <GlobalModals />
     </div>
   );
 }

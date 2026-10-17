@@ -1,38 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../services/api';
-import type { FoodDatabaseItem, AIReportItem } from '../types';
-import { ShieldAlert, Database, AlertCircle, Plus, Trash2, CheckCircle2, XCircle, Users, Shield, RefreshCw, Maximize2, ImageOff, X } from 'lucide-react';
+import React, { useState } from 'react';
+import type { AIReportItem } from '../types';
+import {
+  ShieldAlert,
+  Database,
+  AlertCircle,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  Users,
+  Shield,
+  RefreshCw,
+  Maximize2,
+  ImageOff,
+  X,
+} from 'lucide-react';
 import { useToast } from '../components/Toast';
+import { useTheme } from '../contexts/ThemeContext';
+import { useAdminData } from '../hooks/useAdminData';
 
 interface AdminPageProps {
   theme?: 'dark' | 'light';
 }
 
-interface AdminUserItem {
-  id: number;
-  email: string;
-  full_name?: string;
-  role: string;
-  plan: string;
-  auth_provider: string;
-  created_at: string;
-  height_cm?: number;
-  current_weight_kg?: number;
-  bmi?: number;
-  body_shape?: string;
-}
+export const AdminPage: React.FC<AdminPageProps> = ({ theme: propTheme }) => {
+  const themeContext = useTheme();
+  const isDark = propTheme !== undefined ? propTheme === 'dark' : themeContext.isDark;
+  const toast = useToast();
 
-export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
   const [activeTab, setActiveTab] = useState<'foods' | 'reports' | 'users'>('foods');
-  const [foods, setFoods] = useState<FoodDatabaseItem[]>([]);
-  const [reports, setReports] = useState<AIReportItem[]>([]);
-  const [users, setUsers] = useState<AdminUserItem[]>([]);
-  const [stats, setStats] = useState<{ total_users: number; alert_users_count: number; pending_ai_reports: number; total_food_items: number } | null>(null);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedReportImage, setSelectedReportImage] = useState<AIReportItem | null>(null);
-
-  const isDark = theme === 'dark';
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   // New Food Form State
   const [showAddForm, setShowAddForm] = useState(false);
@@ -43,96 +41,77 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
   const [newCarbs, setNewCarbs] = useState(15);
   const [newFat, setNewFat] = useState(4);
 
-  const loadAdminData = async () => {
-    setIsRefreshing(true);
-    try {
-      const [foodRes, reportRes, statRes, userRes] = await Promise.all([
-        api.getFoodDatabase(),
-        api.getAIReports(),
-        api.getAdminStats(),
-        api.getAllUsers()
-      ]);
-      setFoods(foodRes);
-      setReports(reportRes);
-      setStats(statRes);
-      setUsers(userRes);
-    } catch (err) {
-      console.warn("Error loading admin data:", err);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadAdminData();
-  }, [activeTab]);
-
-  const toast = useToast();
+  const {
+    foods,
+    reports,
+    users,
+    stats,
+    isRefreshing,
+    refetch,
+    addFood,
+    deleteFood,
+    updateReport,
+    updateUserAccount,
+  } = useAdminData(activeTab);
 
   const notify = (msg: string) => {
     setActionMessage(msg);
-    toast.success(msg, "Admin Hub");
+    toast.success(msg, 'Admin Hub');
     setTimeout(() => setActionMessage(null), 3000);
   };
 
   const handleAddFood = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await api.addGroundTruthFood({
+      const created = await addFood({
         food_name: newFoodName,
         category: newCategory,
         calories_per_100g: newCal100g,
         protein_per_100g: newProtein,
         carbs_per_100g: newCarbs,
-        fat_per_100g: newFat
+        fat_per_100g: newFat,
       });
-      setFoods([created, ...foods]);
       setShowAddForm(false);
       setNewFoodName('');
       notify(`Successfully added "${created.food_name}" to the food library!`);
-      loadAdminData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to add food item", "Admin Action Error");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to add food item';
+      toast.error(errMsg, 'Admin Action Error');
     }
   };
 
   const handleDeleteFood = async (foodId: number, foodName: string) => {
     if (!confirm(`Are you sure you want to delete "${foodName}" from the library?`)) return;
     try {
-      await api.deleteGroundTruthFood(foodId);
-      setFoods(foods.filter(f => f.id !== foodId));
+      await deleteFood(foodId);
       notify(`Deleted "${foodName}" from the library.`);
-      loadAdminData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete food item", "Admin Action Error");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to delete food item';
+      toast.error(errMsg, 'Admin Action Error');
     }
   };
 
-  const handleReportAction = async (reportId: number, status: 'resolved' | 'dismissed', addToGroundTruth: boolean = false) => {
+  const handleReportAction = async (reportId: number, status: 'resolved' | 'dismissed', addToGroundTruth = false) => {
     try {
-      const updated = await api.updateAIReport(reportId, status, addToGroundTruth);
-      setReports(reports.map(r => r.id === reportId ? updated : r));
-      notify(status === 'resolved' 
-        ? `Verified report #${reportId}! ${addToGroundTruth ? 'Added food to standard library.' : ''}` 
-        : `Dismissed report #${reportId}.`);
-      loadAdminData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update report status", "Admin Action Error");
+      await updateReport(reportId, status, addToGroundTruth);
+      notify(
+        status === 'resolved'
+          ? `Verified report #${reportId}! ${addToGroundTruth ? 'Added food to standard library.' : ''}`
+          : `Dismissed report #${reportId}.`
+      );
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to update report status';
+      toast.error(errMsg, 'Admin Action Error');
     }
   };
 
   const handleUpdateUser = async (userId: number, role?: string, plan?: string) => {
     try {
-      await api.updateUserAccount(userId, role, plan);
-      setUsers(users.map(u => u.id === userId ? {
-        ...u,
-        role: role || u.role,
-        plan: plan || u.plan
-      } : u));
+      await updateUserAccount(userId, role, plan);
       notify(`Updated account settings for user #${userId}.`);
-      loadAdminData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update user account", "Admin Action Error");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to update user account';
+      toast.error(errMsg, 'Admin Action Error');
     }
   };
 
@@ -143,22 +122,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
 
   return (
     <div className={`space-y-6 pb-24 max-w-4xl mx-auto px-4 pt-4 ${textMain}`}>
-      
       {/* Header Admin Badge */}
-      <div className={`border rounded-3xl p-5 shadow-xl flex items-center justify-between ${
-        isDark ? 'bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border-amber-500/30' : 'bg-gradient-to-r from-amber-50 via-white to-orange-50 border-amber-200'
-      }`}>
+      <div
+        className={`border rounded-3xl p-5 shadow-xl flex items-center justify-between ${
+          isDark
+            ? 'bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border-amber-500/30'
+            : 'bg-gradient-to-r from-amber-50 via-white to-orange-50 border-amber-200'
+        }`}
+      >
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
             <ShieldAlert className="w-7 h-7" />
           </div>
           <div>
             <h2 className={`text-xl font-black ${textMain}`}>Admin Management Hub</h2>
-            <p className="text-xs text-amber-500 font-medium">Manage standard food library, user correction reports & user roles</p>
+            <p className="text-xs text-amber-500 font-medium">
+              Manage standard food library, user correction reports & user roles
+            </p>
           </div>
         </div>
         <button
-          onClick={loadAdminData}
+          onClick={refetch}
           disabled={isRefreshing}
           className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold border shadow-sm transition ${
             isDark
@@ -216,7 +200,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
           }`}
         >
           <AlertCircle className="w-4 h-4" />
-          <span>User Correction Reports ({reports.filter(r => r.status === 'pending').length})</span>
+          <span>User Correction Reports ({reports.filter((r) => r.status === 'pending').length})</span>
         </button>
         <button
           onClick={() => setActiveTab('users')}
@@ -244,10 +228,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
 
           {/* Form add new food */}
           {showAddForm && (
-            <form onSubmit={handleAddFood} className={`p-4 rounded-2xl border space-y-3 ${
-              isDark ? 'bg-slate-800/80 border-amber-500/30' : 'bg-amber-50/50 border-amber-200'
-            }`}>
+            <form
+              onSubmit={handleAddFood}
+              className={`p-4 rounded-2xl border space-y-3 ${
+                isDark ? 'bg-slate-800/80 border-amber-500/30' : 'bg-amber-50/50 border-amber-200'
+              }`}
+            >
               <span className="text-xs font-bold text-amber-500">Enter nutritional values for new food item:</span>
+
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="text"
@@ -305,7 +293,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
                 </div>
               </div>
 
-              <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2 rounded-xl transition">
+              <button
+                type="submit"
+                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2 rounded-xl transition"
+              >
                 Save to Food Library
               </button>
             </form>
@@ -327,7 +318,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
               </thead>
               <tbody className={`divide-y ${isDark ? 'divide-slate-800/60' : 'divide-slate-200'}`}>
                 {foods.map((food) => (
-                  <tr key={food.id} className={isDark ? "hover:bg-slate-800/40" : "hover:bg-slate-50"}>
+                  <tr key={food.id} className={isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'}>
                     <td className={`py-3 px-3 font-bold ${textMain}`}>{food.food_name}</td>
                     <td className={`py-3 px-3 ${textSub}`}>{food.category}</td>
                     <td className="py-3 px-3 font-bold text-emerald-500">{food.calories_per_100g} kcal</td>
@@ -358,7 +349,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
               User Feedback & Recognition Reports ({reports.length})
             </h3>
             <button
-              onClick={loadAdminData}
+              onClick={refetch}
               disabled={isRefreshing}
               className="flex items-center space-x-1.5 text-xs text-amber-500 hover:text-amber-400 font-bold px-3 py-1 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition"
             >
@@ -368,14 +359,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
           </div>
           <div className="space-y-3">
             {reports.length === 0 ? (
-              <div className="py-8 text-center text-slate-500 text-xs">
-                No user feedback reports found.
-              </div>
+              <div className="py-8 text-center text-slate-500 text-xs">No user feedback reports found.</div>
             ) : (
               reports.map((report) => (
-                <div key={report.id} className={`p-4 rounded-2xl border flex items-center justify-between text-xs ${
-                  isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
-                }`}>
+                <div
+                  key={report.id}
+                  className={`p-4 rounded-2xl border flex items-center justify-between text-xs ${
+                    isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
                   <div className="flex items-center space-x-3.5">
                     {report.image_url ? (
                       <div
@@ -408,20 +400,23 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
                         <span className="font-bold text-emerald-500">User correction: "{report.user_correction}"</span>
                       </div>
                       <p className={`text-[11px] mt-1 ${textSub}`}>
-                        Report #{report.id} • User #{report.user_id} • Date: {new Date(report.created_at).toLocaleDateString('en-US')}
+                        Report #{report.id} • User #{report.user_id} • Date:{' '}
+                        {new Date(report.created_at).toLocaleDateString('en-US')}
                         {report.image_url ? ' • 📷 Photo attached' : ''}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <span className={`font-bold px-2.5 py-1 rounded-full text-[10px] ${
-                      report.status === 'pending'
-                        ? 'bg-amber-500/20 text-amber-500'
-                        : report.status === 'resolved'
-                        ? 'bg-emerald-500/20 text-emerald-500'
-                        : 'bg-slate-500/20 text-slate-400'
-                    }`}>
+                    <span
+                      className={`font-bold px-2.5 py-1 rounded-full text-[10px] ${
+                        report.status === 'pending'
+                          ? 'bg-amber-500/20 text-amber-500'
+                          : report.status === 'resolved'
+                          ? 'bg-emerald-500/20 text-emerald-500'
+                          : 'bg-slate-500/20 text-slate-400'
+                      }`}
+                    >
                       {report.status === 'pending' ? 'Pending' : report.status === 'resolved' ? 'Verified' : 'Dismissed'}
                     </span>
 
@@ -469,29 +464,45 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
               </thead>
               <tbody className={`divide-y ${isDark ? 'divide-slate-800/60' : 'divide-slate-200'}`}>
                 {users.map((u) => (
-                  <tr key={u.id} className={isDark ? "hover:bg-slate-800/40" : "hover:bg-slate-50"}>
+                  <tr key={u.id} className={isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'}>
                     <td className="py-3 px-3">
-                      <span className={`font-bold block ${textMain}`}>#{u.id} {u.full_name || 'User'}</span>
+                      <span className={`font-bold block ${textMain}`}>
+                        #{u.id} {u.full_name || 'User'}
+                      </span>
                       <span className={`text-[10px] ${textSub}`}>{u.email}</span>
                     </td>
                     <td className="py-3 px-3">
-                      <span className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-full text-[10px] ${
-                        u.role === 'admin' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-slate-700/50 text-slate-300'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-full text-[10px] ${
+                          u.role === 'admin'
+                            ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
+                            : 'bg-slate-700/50 text-slate-300'
+                        }`}
+                      >
                         {u.role === 'admin' ? <Shield className="w-3 h-3" /> : null}
                         {u.role === 'admin' ? 'ADMIN' : 'USER'}
                       </span>
                     </td>
                     <td className="py-3 px-3">
-                      <span className={`font-extrabold px-2 py-0.5 rounded-full text-[10px] ${
-                        u.plan === 'pro' ? 'bg-indigo-500/20 text-indigo-400' : u.plan === 'plus' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/30 text-slate-400'
-                      }`}>
+                      <span
+                        className={`font-extrabold px-2 py-0.5 rounded-full text-[10px] ${
+                          u.plan === 'pro'
+                            ? 'bg-indigo-500/20 text-indigo-400'
+                            : u.plan === 'plus'
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-slate-700/30 text-slate-400'
+                        }`}
+                      >
                         {u.plan === 'pro' ? 'PRO' : u.plan === 'plus' ? 'PLUS' : 'STANDARD'}
                       </span>
                     </td>
                     <td className="py-3 px-3">
                       {u.bmi ? (
-                        <span className={`font-bold ${u.bmi > 30 ? 'text-rose-500' : u.bmi < 16 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                        <span
+                          className={`font-bold ${
+                            u.bmi > 30 ? 'text-rose-500' : u.bmi < 16 ? 'text-amber-500' : 'text-emerald-500'
+                          }`}
+                        >
                           BMI: {u.bmi.toFixed(1)} ({u.body_shape || 'Fit'})
                         </span>
                       ) : (
@@ -588,7 +599,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({ theme = 'dark' }) => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

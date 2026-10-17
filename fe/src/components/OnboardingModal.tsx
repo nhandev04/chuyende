@@ -60,7 +60,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 }
             });
         }
-    }, [isOpen, userId]);
+    }, [isOpen, userId, currentProfile]);
 
 
     // AI Photo State
