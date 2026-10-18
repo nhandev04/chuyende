@@ -12,8 +12,10 @@ _POSE_MODEL: Optional[YOLO] = None
 _ARUCO_DETECTOR: Optional[Any] = None
 
 POSE_MODEL_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "models", "yolov8n-pose.pt")
+    os.path.join(os.path.dirname(__file__), "..", "ai_weights", "yolov8n-pose.pt")
 )
+
+
 
 ARUCO_DICTIONARY = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 ARUCO_PARAMETERS = cv2.aruco.DetectorParameters()

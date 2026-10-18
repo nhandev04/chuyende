@@ -1,121 +1,72 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
 from app.db.database import get_db
-from app.db.models import FoodLog, UserProfile
+from app.db.models import User
 from app.schemas.schemas import FoodLogCreate, FoodLogOut
+from app.core.security import get_current_user, verify_user_access
+from app.services.food_service import FoodService
 
 router = APIRouter(prefix="/api/v1/food-logs", tags=["Food Logs"])
 
+
 @router.post("/{user_id}", response_model=FoodLogOut)
-def create_food_log(user_id: int, log_in: FoodLogCreate, db: Session = Depends(get_db)):
-    log_entry = FoodLog(
-        user_id=user_id,
-        meal_type=log_in.meal_type,
-        food_name=log_in.food_name,
-        weight_g=log_in.weight_g,
-        calories=log_in.calories,
-        protein_g=log_in.protein_g,
-        carbs_g=log_in.carbs_g,
-        fat_g=log_in.fat_g,
-        image_url=log_in.image_url,
-        confidence_score=0.95,
-        logged_at=datetime.utcnow()
-    )
-    db.add(log_entry)
-    db.commit()
-    db.refresh(log_entry)
-    return log_entry
+def create_food_log(
+    user_id: int,
+    log_in: FoodLogCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Creates a new meal entry for the user.
+    Enforces IDOR prevention: only the owner or an admin can log meals.
+    """
+    verify_user_access(current_user, user_id)
+    service = FoodService(db)
+    return service.create_log(user_id, log_in)
+
 
 @router.get("/{user_id}", response_model=List[FoodLogOut])
 def get_user_food_logs(
-    user_id: int, 
+    user_id: int,
     date_str: Optional[str] = Query(None, description="Format YYYY-MM-DD"),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    query = db.query(FoodLog).filter(FoodLog.user_id == user_id)
-    if date_str:
-        try:
-            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-            query = query.filter(
-                FoodLog.logged_at >= datetime.combine(target_date, datetime.min.time()),
-                FoodLog.logged_at <= datetime.combine(target_date, datetime.max.time())
-            )
-        except ValueError:
-            pass
-    return query.order_by(FoodLog.logged_at.desc()).all()
+    """
+    Fetches food logs for a specified user and optional date.
+    Enforces IDOR prevention: only the owner or an admin can view logs.
+    """
+    verify_user_access(current_user, user_id)
+    service = FoodService(db)
+    return service.get_logs(user_id, date_str)
+
 
 @router.get("/{user_id}/summary")
-def get_nutrition_summary(user_id: int, db: Session = Depends(get_db)):
-    profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
-    target_cal = profile.daily_calorie_target if profile else 2000.0
+def get_nutrition_summary(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Computes daily consumed macros, calories, remaining allowances, and historical charts.
+    """
+    verify_user_access(current_user, user_id)
+    service = FoodService(db)
+    return service.get_nutrition_summary(user_id)
 
-    today = datetime.utcnow().date()
-    today_start = datetime.combine(today, datetime.min.time())
-    
-    # Today logs
-    today_logs = db.query(FoodLog).filter(
-        FoodLog.user_id == user_id,
-        FoodLog.logged_at >= today_start
-    ).all()
-
-    consumed_cal = sum(log.calories for log in today_logs)
-    protein_total = sum(log.protein_g for log in today_logs)
-    carbs_total = sum(log.carbs_g for log in today_logs)
-    fat_total = sum(log.fat_g for log in today_logs)
-
-    # Weekly chart data (7 days)
-    weekly_data = []
-    days_map = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    for i in range(6, -1, -1):
-        day_date = today - timedelta(days=i)
-        d_start = datetime.combine(day_date, datetime.min.time())
-        d_end = datetime.combine(day_date, datetime.max.time())
-        logs = db.query(FoodLog).filter(
-            FoodLog.user_id == user_id,
-            FoodLog.logged_at >= d_start,
-            FoodLog.logged_at <= d_end
-        ).all()
-        day_cal = sum(l.calories for l in logs)
-
-        weekly_data.append({
-            "day": days_map[day_date.weekday()],
-            "date": day_date.strftime("%d/%m"),
-            "calories": day_cal,
-            "target": target_cal
-        })
-
-    # Monthly chart data (4 weeks)
-    monthly_data = [
-        {"week": "Week 1", "avg_calories": target_cal - 100, "avg_weight": 66.5},
-        {"week": "Week 2", "avg_calories": target_cal + 50, "avg_weight": 66.0},
-        {"week": "Week 3", "avg_calories": target_cal - 150, "avg_weight": 65.4},
-        {"week": "Week 4", "avg_calories": consumed_cal if consumed_cal > 0 else target_cal - 50, "avg_weight": profile.current_weight_kg if profile else 65.0}
-    ]
-
-    return {
-        "daily": {
-            "consumed_calories": round(consumed_cal, 1),
-            "target_calories": round(target_cal, 1),
-            "remaining_calories": round(max(0, target_cal - consumed_cal), 1),
-            "protein_g": round(protein_total, 1),
-            "protein_target_g": round((target_cal * 0.3) / 4, 1), # 30% of target cal
-            "carbs_g": round(carbs_total, 1),
-            "carbs_target_g": round((target_cal * 0.45) / 4, 1), # 45% of target cal
-            "fat_g": round(fat_total, 1),
-            "fat_target_g": round((target_cal * 0.25) / 9, 1), # 25% of target cal
-        },
-        "weekly_chart": weekly_data,
-        "monthly_chart": monthly_data
-    }
 
 @router.delete("/{log_id}")
-def delete_food_log(log_id: int, db: Session = Depends(get_db)):
-    log = db.query(FoodLog).filter(FoodLog.id == log_id).first()
-    if not log:
-        raise HTTPException(status_code=404, detail="Food log entry not found")
-    db.delete(log)
-    db.commit()
+def delete_food_log(
+    log_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Deletes a specific food log item.
+    Enforces ownership validation: only the item owner or an admin can delete it.
+    """
+    service = FoodService(db)
+    service.delete_log(log_id, current_user)
     return {"message": "Food log deleted successfully"}
-

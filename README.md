@@ -68,7 +68,7 @@ chuyende/
 │ ├── src/pages/ # Dashboard, History, ProfilePage, AdminPage
 │ └── src/App.tsx # Main Controller & Dark/Light Theme Manager
 ├── be/ # FastAPI + SQLAlchemy ORM + SQLite
-│ ├── app/models/best.pt # Weights Mô Hình AI YOLOv8 (29.2 MB)
+│ ├── app/ai_weights/best.pt # Weights Mô Hình AI YOLOv8
 │ ├── app/services/body_pose_analyzer.py # YOLO Pose (17 Keypoints) & Dynamic BMI Engine
 │ ├── app/services/analysis_engine.py # 10-Level BMI Scale & Recommendation Engine
 │ └── health_app.db # Database SQLite

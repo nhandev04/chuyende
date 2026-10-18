@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -81,8 +81,7 @@ class UserProfileOut(BaseModel):
     avatar_url: Optional[str] = None
 
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Food Log Schemas
 class FoodLogCreate(BaseModel):
@@ -109,8 +108,7 @@ class FoodLogOut(BaseModel):
     confidence_score: float
     logged_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Weight Log Schemas
 class WeightLogCreate(BaseModel):
@@ -122,8 +120,8 @@ class WeightLogOut(BaseModel):
     weight_kg: float
     recorded_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 # AI Analysis & Recommendation Schemas
 class AIAnalysisResult(BaseModel):

@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 try:
     from dotenv import load_dotenv
@@ -16,10 +16,6 @@ from app.db.models import User, SubscriptionHistory
 from app.schemas.schemas import CheckoutSessionRequest, SubscriptionUpgradeRequest, SubscriptionStatusOut, VerifySessionRequest
 
 logger = logging.getLogger(__name__)
-
-router = APIRouter(prefix="/api/v1/subscription", tags=["Subscriptions & Stripe"])
-
-
 
 router = APIRouter(prefix="/api/v1/subscription", tags=["Subscriptions & Stripe"])
 
@@ -272,7 +268,7 @@ def expire_outdated_subscriptions(db: Session):
     Scans DB for expired subscriptions (expires_at < now)
     and automatically resets plan to 'standard' and status to 'expired'.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     expired_users = db.query(User).filter(
         User.plan != "standard",
         User.subscription_expires_at != None,

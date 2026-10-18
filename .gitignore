@@ -24,16 +24,40 @@ dist-ssr
 *.sw?
 *.doc
 *.docx
+
+# Environment variables & secrets (CRITICAL)
 .env
 .env.*
 *.env
+!.env.example
 
-
-__pycache__
+# Python & Testing artifacts
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Virtual Environments
-.venv
-venv
-be/venv
-*.pyc
+.venv/
+venv/
+be/venv/
+env/
+ENV/
+
+# Temporary user media & file uploads
+temp_uploads/
+temp_body_uploads/
+be/temp_uploads/
+be/temp_body_uploads/
+
+# Local database journals
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Reports
 baocao_*

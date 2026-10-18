@@ -14,7 +14,8 @@ if not logger.handlers:
 
 # Cache model instance globally
 _YOLO_MODEL = None
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "best.pt")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "ai_weights", "best.pt")
+
 
 def get_yolo_model():
     global _YOLO_MODEL
