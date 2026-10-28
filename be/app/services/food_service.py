@@ -7,6 +7,7 @@ from app.db.models import FoodLog, User, UserProfile
 from app.schemas.schemas import FoodLogCreate
 from app.repositories.food_log_repo import FoodLogRepository
 from app.repositories.user_repo import UserRepository
+from app.repositories.weight_log_repo import WeightLogRepository
 
 
 class FoodService:
@@ -14,6 +15,7 @@ class FoodService:
         self.db = db
         self.food_repo = FoodLogRepository(db)
         self.user_repo = UserRepository(db)
+        self.weight_repo = WeightLogRepository(db)
 
     def create_log(self, user_id: int, log_in: FoodLogCreate) -> FoodLog:
         log_entry = FoodLog(
@@ -89,17 +91,76 @@ class FoodService:
                 "target": target_cal
             })
 
-        # Monthly chart data (4 weeks)
-        monthly_data = [
-            {"week": "Week 1", "avg_calories": target_cal - 100, "avg_weight": 66.5},
-            {"week": "Week 2", "avg_calories": target_cal + 50, "avg_weight": 66.0},
-            {"week": "Week 3", "avg_calories": target_cal - 150, "avg_weight": 65.4},
-            {
-                "week": "Week 4",
-                "avg_calories": consumed_cal if consumed_cal > 0 else target_cal - 50,
-                "avg_weight": profile.current_weight_kg if profile else 65.0
-            }
-        ]
+        # Monthly chart data (4 consecutive 7-day weeks ending today, queried from real DB)
+        monthly_data = []
+        user_weight_logs = self.weight_repo.get_by_user(user_id, limit=200)
+        default_weight = profile.current_weight_kg if (profile and profile.current_weight_kg) else 65.0
+
+        def _to_naive_utc(dt: Optional[datetime]) -> Optional[datetime]:
+            if dt is None:
+                return None
+            if dt.tzinfo is not None:
+                return dt.astimezone(timezone.utc).replace(tzinfo=None)
+            return dt
+
+        # 4 consecutive weeks:
+        # Week 1: 27 to 21 days ago
+        # Week 2: 20 to 14 days ago
+        # Week 3: 13 to 7 days ago
+        # Week 4: 6 to 0 days ago (current week ending today)
+        for w_idx, (start_offset, end_offset) in enumerate([(27, 21), (20, 14), (13, 7), (6, 0)], start=1):
+            w_start_date = today - timedelta(days=start_offset)
+            w_end_date = today - timedelta(days=end_offset)
+            w_start_dt = datetime.combine(w_start_date, datetime.min.time())
+            w_end_dt = datetime.combine(w_end_date, datetime.max.time())
+
+            # Query real food logs for this week interval
+            week_logs = self.food_repo.get_user_logs_between(user_id, w_start_dt, w_end_dt)
+            if week_logs:
+                daily_totals: Dict[Any, float] = {}
+                for log in week_logs:
+                    raw_dt = _to_naive_utc(getattr(log, "logged_at", None))
+                    log_date = raw_dt.date() if raw_dt else w_end_date
+                    daily_totals[log_date] = daily_totals.get(log_date, 0.0) + (log.calories or 0.0)
+
+                active_days = len(daily_totals)
+                avg_calories = round(sum(daily_totals.values()) / active_days, 1) if active_days > 0 else 0.0
+            else:
+                avg_calories = 0.0
+
+            # Query real weight logs for this week interval
+            week_weights = [
+                w.weight_kg for w in user_weight_logs
+                if getattr(w, "recorded_at", None) is not None
+                and _to_naive_utc(w.recorded_at) is not None
+                and w_start_dt <= _to_naive_utc(w.recorded_at) <= w_end_dt
+                and getattr(w, "weight_kg", None) is not None
+            ]
+
+            if week_weights:
+                avg_weight = round(sum(week_weights) / len(week_weights), 1)
+            else:
+                # Find most recent weight log recorded on or before this week's end
+                prior_weights = [
+                    w.weight_kg for w in user_weight_logs
+                    if getattr(w, "recorded_at", None) is not None
+                    and _to_naive_utc(w.recorded_at) is not None
+                    and _to_naive_utc(w.recorded_at) <= w_end_dt
+                    and getattr(w, "weight_kg", None) is not None
+                ]
+                if prior_weights:
+                    avg_weight = round(prior_weights[0], 1)
+                elif user_weight_logs:
+                    earliest_w = getattr(user_weight_logs[-1], "weight_kg", default_weight)
+                    avg_weight = round(earliest_w or default_weight, 1)
+                else:
+                    avg_weight = round(default_weight, 1)
+
+            monthly_data.append({
+                "week": f"Week {w_idx}",
+                "avg_calories": avg_calories,
+                "avg_weight": avg_weight
+            })
 
         return {
             "daily": {
