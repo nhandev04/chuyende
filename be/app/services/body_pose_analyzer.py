@@ -9,25 +9,10 @@ from ultralytics import YOLO
 logger = logging.getLogger(__name__)
 
 _POSE_MODEL: Optional[YOLO] = None
-_ARUCO_DETECTOR: Optional[Any] = None
 
 POSE_MODEL_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "ai_weights", "yolov8n-pose.pt")
 )
-
-
-
-ARUCO_DICTIONARY = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
-ARUCO_PARAMETERS = cv2.aruco.DetectorParameters()
-ARUCO_SIDE_CM = 5.0
-
-
-def get_aruco_detector() -> Any:
-    """Get or create ArUco detector instance."""
-    global _ARUCO_DETECTOR
-    if _ARUCO_DETECTOR is None:
-        _ARUCO_DETECTOR = cv2.aruco.ArucoDetector(ARUCO_DICTIONARY, ARUCO_PARAMETERS)
-    return _ARUCO_DETECTOR
 
 
 def get_pose_model() -> YOLO:
@@ -47,29 +32,7 @@ def get_pose_model() -> YOLO:
         ) from exc
 
 
-
-
-def _detect_aruco_markers(image: np.ndarray) -> List[Dict[str, float]]:
-    detector = get_aruco_detector()
-    corners, ids, rejected = detector.detectMarkers(image)
-    if ids is None or len(ids) == 0 or corners is None:
-        return []
-
-    markers: List[Dict[str, float]] = []
-    for corner in corners:
-        p1, p2, p3, p4 = corner[0]
-        side_px = max(
-            np.linalg.norm(p1 - p2),
-            np.linalg.norm(p2 - p3),
-            np.linalg.norm(p3 - p4),
-            np.linalg.norm(p4 - p1),
-        )
-        if side_px > 0:
-            markers.append({"side_px": float(side_px)})
-    return markers
-
-
-def _estimate_height_from_pose_and_aruco(image_path: str, result: Any) -> Optional[float]:
+def _estimate_height_from_pose_keypoints(result: Any) -> Optional[float]:
     """Estimate height from YOLO pose keypoints using body proportions.
     
     YOLO keypoint model (17 points):
@@ -194,7 +157,7 @@ def predict_height_weight_from_body(image_path: str) -> Dict[str, Any]:
         else:
             box_conf = 0.5
 
-        height_cm = _estimate_height_from_pose_and_aruco(image_path, result)
+        height_cm = _estimate_height_from_pose_keypoints(result)
         if height_cm is None:
             continue
 
