@@ -24,6 +24,10 @@ dist-ssr
 *.sw?
 *.doc
 *.docx
+!docs/*.docx
+docs/
+scripts/
+
 
 # Environment variables & secrets (CRITICAL)
 .env
